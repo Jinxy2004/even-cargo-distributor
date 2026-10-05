@@ -73,4 +73,7 @@ Split each delivery between the stops on a line instead of dropping everything a
 **Caveats**
 - Removing the mod from a save game can cause unwanted behavior.
 
+**Bug reports**
+- If you find a bug, please post a comment about it and I'll attempt to resolve it as quickly as possible.
+
 Source code (MIT): https://github.com/Jinxy2004/even-cargo-distributor
