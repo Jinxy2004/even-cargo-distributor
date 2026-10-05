@@ -40,6 +40,14 @@ State at 1.0.0 (2026-10-05). Game build 40408, Windows. Read this before changin
   placed in a layout must return a builtin layout ("Recipe child must be a layout").
   The game's styles are scoped to `R::CargoFilterContent`, so `unload_gui.css.lua`
   restyles the card under `R::CargoDistributionUnloadCard`.
+  Gamepad: `CargoFilterContent` registers its own up/down focus traversal without
+  bubble-up, so a card placed beside it can't be reached with a controller. Re-registering
+  those actions later in the same component has no effect in game (first one wins), so the
+  card goes inside the stock scroll list instead: the mod replaces
+  `entity_window_util.ContentWidgetScrollContainer` with a plain function (it runs
+  synchronously inside the caller's body) that, only when
+  `react.getCurrentRecipeName() == "CargoFilterContent"`, appends the card to the children.
+  The stop params come from the popover replacement (one stop popover at a time).
   The GUI reads saved state via `gameScriptSystem.getEntityForGameScript(".../cargo_distribution.gs")`.
 
 ## Gotchas
@@ -48,5 +56,9 @@ State at 1.0.0 (2026-10-05). Game build 40408, Windows. Read this before changin
 - Renaming the `.gs.lua` file starts a fresh saved state (rules are lost for saves that
   used the old name). 1.0.0 renamed `probe.gs` → `cargo_distribution.gs`.
 - Collect `crash_dump/stdout.txt` before restarting the game; it is replaced.
+- With several copies of the mod installed, the game picks the `staging_area` one over
+  `mods` (stdout: "Multiple (3) mods with same id found ... has been selected"). Update
+  the copy it selects when testing. Don't mirror-install over staging: it holds
+  `_metadata/mod.io_fileid.txt`, which the install script's mirror step would delete.
 - Installed API definitions (`api/tealdef`, `base/content/gui.zip`) are the reference;
   online docs may differ.

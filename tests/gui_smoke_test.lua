@@ -1,5 +1,6 @@
 -- Smoke test for unload_gui.script.lua with a fake React. It checks the module loads,
--- registers the replacement, wraps only the stop window, and that the card's controls
+-- registers the replacements, adds the card only to the stop window's own scroll list
+-- (so the game's gamepad navigation reaches it), and that the card's controls
 -- send well-formed setRule requests. It does NOT prove the real game GUI renders.
 local core = dofile(source_root .. "/core.lua")
 local count = 0
@@ -29,7 +30,12 @@ function react.useState(initial)
     viewStore.value = viewStore.value or initial
     return { old = function() return viewStore.value end, set = function(_, v) viewStore.value = v end }
 end
-function react.CallOriginalRecipe(r, p) return r(p) end
+function react.CallOriginalRecipe(r, ...) return r(...) end
+local currentRecipe, navActions = nil, {}
+function react.getCurrentRecipeName() return currentRecipe end
+function react.iaFocusTraversal(h, f, bubble) return { h = h, f = f, bubble = bubble == true } end
+function react.useInputAction(ia, cfg) navActions[#navActions + 1] = { ia = ia, cfg = cfg } end
+local scrollContainer = function(children, first) return { kind = "ScrollContainer", children = children, first = first } end
 local popover = { PopoverWindowContent = react.RegisterRecipe("PopoverWindowContent", function(p)
     return builtin.BoxLayout{ child = p.recipe(p.params), meta = p.meta } end) }
 local committed
@@ -43,6 +49,7 @@ local modules = {
     ["::/gui/main/content_card.tl"] = { ContentCard = widget("ContentCard") },
     ["::/gui/main/engine_react_util.tl"] = engine_react_util,
     ["::/gui/main/gui_react_util.tl"] = { IconLabelIndicator = widget("IconLabelIndicator") },
+    ["::/gui/entity_window/entity_window_util.tl"] = { ContentWidgetScrollContainer = scrollContainer },
     ["cargo_distribution_1::/cargo_distribution/core.lua"] = core,
 }
 function ug_require(path) return assert(modules[path], "unexpected require " .. path) end
@@ -65,29 +72,51 @@ api = { type = { ComponentType = { LINE = "LINE", TRANSPORT_VEHICLE = "TV", GAME
 data = nil
 dofile(source_root .. "/unload_gui.script.lua")
 local M = data()
-M.doReplace({ ReplaceRecipe = function(orig, rep) replaced = { orig = orig, rep = rep } end })
-check(replaced and replaced.orig == popover.PopoverWindowContent, "replaces the stock popover content")
+local replacements = {}
+M.doReplace({ ReplaceRecipe = function(orig, rep) replacements[orig] = rep end })
+replaced = { orig = popover.PopoverWindowContent, rep = replacements[popover.PopoverWindowContent] }
+check(replaced.rep ~= nil, "replaces the stock popover content")
+local scrollRep = replacements[scrollContainer]
+check(scrollRep ~= nil, "replaces the content scroll container")
 -- Other popovers pass straight through.
 local other = react.RegisterRecipe("SomethingElse", function(p) return "other" end)
 local out = replaced.rep({ recipe = other, params = 1 })
 check(out.out.p.children[1].out.p.child.recipe == "SomethingElse", "non-stop popovers unchanged")
 check(out.out.p.children[1].out.p.meta.forceFocusable, "focus meta forwarded")
--- The stop window gets the card.
-local stopContent = react.RegisterRecipe("CargoFilterContent", function(p) return "stock" end)
+-- Other windows using the scroll container are untouched.
+currentRecipe = "SomeEntityWindow"
+local sc = scrollRep({ "a" }, true)
+check(sc.kind == "ScrollContainer" and #sc.children == 1 and sc.children[1] == "a" and sc.first == true,
+    "other windows' scroll containers unchanged")
+-- The stop window: like the real CargoFilterContent, the fake calls the (replaced)
+-- scroll container from inside its own body with its cards.
+local stockCards = { "stockLoadCard" }
+local stopContent = react.RegisterRecipe("CargoFilterContent", function(p)
+    currentRecipe = "CargoFilterContent"
+    local result = builtin.BoxLayout{ children = { scrollRep(stockCards, true) } }
+    currentRecipe = nil
+    return result
+end)
 local params = { lineEntity = 1, stopIndex = 1 }
-out = replaced.rep({ recipe = stopContent, params = params })
-local box = out.out.p.children[1].out.p.child.out
-local kids = box.p.children
-check(kids[1].recipe == "CargoFilterContent", "stock content first")
-check(kids[2].recipe == "CargoDistributionUnloadCard", "unload card below")
+local function stopScroll()
+    local o = replaced.rep({ recipe = stopContent, params = params })
+    check(o.out.p.children[1].out.p.child.recipe == "CargoFilterContent", "stop window keeps its stock content")
+    return o.out.p.children[1].out.p.child.out.p.children[1]
+end
+sc = stopScroll()
+local kids = sc.children
+check(sc.first == true and kids[1] == "stockLoadCard", "stock cards first, arguments kept")
+check(#stockCards == 1, "stock children table not modified")
+-- Inside the stock scroll list, so the game's own gamepad navigation reaches it.
+check(kids[2].recipe == "CargoDistributionUnloadCard", "unload card inside the stock list, last")
 check(kids[2].out.kind == "BoxLayout", "card recipe returns a layout")
+check(#navActions == 0, "no custom navigation handlers needed")
 local card = kids[2].out.p.children[1].p
 check(card.title == "Unload", "card title")
 local items = card.extraChildrenPermanent
 check(items[1].kind == "CheckBox" and items[1].p.value == 1, "existing rule shown as on")
 local function render()
-    local o = replaced.rep({ recipe = stopContent, params = params })
-    return o.out.p.children[1].out.p.child.out.p.children[2].out.p.children[1].p.extraChildrenPermanent
+    return stopScroll().children[2].out.p.children[1].p.extraChildrenPermanent
 end
 local function find(list, kind) for _, it in ipairs(list) do if it.kind == kind then return it end end end
 local function icons(list)

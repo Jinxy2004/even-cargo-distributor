@@ -8,6 +8,7 @@ local popover = ug_require "::/gui/main/popover_react_util.tl"
 local content_card = ug_require "::/gui/main/content_card.tl"
 local engine_react_util = ug_require "::/gui/main/engine_react_util.tl"
 local gui_react_util = ug_require "::/gui/main/gui_react_util.tl"
+local entity_window_util = ug_require "::/gui/entity_window/entity_window_util.tl"
 local core = ug_require "cargo_distribution_1::/cargo_distribution/core.lua"
 
 local M = {}
@@ -256,13 +257,10 @@ local UnloadCard = react.RegisterRecipe("CargoDistributionUnloadCard", function(
     })
 end)
 
--- Stock stop-window content with our card below it.
-local StopWindowWithUnload = react.RegisterRecipe("CargoDistributionStopWindowContent", function(params)
-    return vertical({
-        params.inner(params.innerParams),
-        UnloadCard(params.innerParams),
-    })
-end)
+-- The stop window is a popover; this remembers the params of the one being shown.
+-- The popover closes when clicking outside it, so only one stop window exists at a time,
+-- and its content always renders after this (the popover content is its ancestor).
+local activeStopParams = nil
 
 local OriginalPopoverContent = popover.PopoverWindowContent
 
@@ -272,16 +270,34 @@ local PopoverContentReplacement = react.RegisterRecipe("CargoDistributionPopover
     for k, v in pairs(params or {}) do forwarded[k] = v end
     local recipe = forwarded.recipe
     if recipe and react.GetRecipeName(recipe) == STOP_WINDOW_CONTENT then
-        forwarded.recipe = StopWindowWithUnload
-        forwarded.params = { inner = recipe, innerParams = params.params }
+        activeStopParams = params.params
     end
     -- Like every recipe placed in a window/layout, return a builtin layout around the
     -- original node rather than the node itself ("Recipe child must be a layout").
     return vertical({ react.CallOriginalRecipe(OriginalPopoverContent, forwarded) })
 end)
 
+-- The card goes inside the stock content's own scroll list, after its cards. The stock
+-- content handles gamepad up/down itself and never lets it leave its own subtree, so a
+-- card placed beside it could not be reached with a controller. Its last call is
+-- ContentWidgetScrollContainer(children, first), made synchronously inside its body, so
+-- a plain-function replacement can tell (getCurrentRecipeName) that it was called from
+-- the stop window and add the card to the list. Other windows are left as is.
+local OriginalScrollContainer = entity_window_util.ContentWidgetScrollContainer
+
+local function scrollContainerWithUnload(children, ...)
+    if activeStopParams and react.getCurrentRecipeName() == STOP_WINDOW_CONTENT then
+        local withCard = {}
+        for i, child in ipairs(children or {}) do withCard[i] = child end
+        withCard[#withCard + 1] = UnloadCard(activeStopParams)
+        children = withCard
+    end
+    return react.CallOriginalRecipe(OriginalScrollContainer, children, ...)
+end
+
 function M.doReplace(replacementApi)
     replacementApi.ReplaceRecipe(OriginalPopoverContent, PopoverContentReplacement)
+    replacementApi.ReplaceRecipe(OriginalScrollContainer, scrollContainerWithUnload)
 end
 
 function data()
