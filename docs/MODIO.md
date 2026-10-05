@@ -25,9 +25,14 @@ For updates: keep the mod ID, raise `version` in `config.lua`, `revision` in
 `mod.json`, add a CHANGELOG entry, and add a saved-state migration in `core.migrate`
 if the saved data changes.
 
-## Screenshots to take (in game, real results only)
+## Screenshots
 
-1. The stop window with the Unload card: All cargo 50% and one cargo icon with its own level.
+Gallery images go next to the cover as `_metadata/1.png`, `2.png`, ... (copies kept in
+`media/`). Included: `1.png` = the stop window with the Unload card (All cargo 50%,
+goods 50%, meat 25%).
+
+Further ideas (in game, real results only):
+
 2. A train at town one after unloading, showing about half its cargo still aboard.
 3. The cargo picker (after clicking +).
 
@@ -35,36 +40,37 @@ if the saved data changes.
 
 **Name:** Cargo Distribution
 
-**Summary:** Unload a set percentage of each vehicle's cargo at chosen line stops, per
-cargo type, from the stop window.
+**Summary:** Split deliveries between stops: unload a set percentage of each vehicle's cargo at chosen stops, with per-cargo levels.
 
 **Tags:** Script Mod
 
 **Description:**
 
-Split a delivery between the stops on a line instead of dumping everything at the first one.
+Split each delivery between the stops on a line instead of dropping everything at the first one.
+
+**What it does**
+- Adds an Unload card to the stop window (line manager → click a stop), below Load and Departure Configuration.
+- Unload a set percentage of the cargo each vehicle carries when it arrives, e.g. 50% at the first town and the rest at the second.
+- One level for all cargo, plus optional per-cargo levels: click + and pick a cargo, just like the Load card.
+- 0% keeps a cargo aboard, so you can unload only meat and carry the wool on.
+- Amounts round to the nearest whole unit (25 at 50% unloads 13).
+- Works with mixed cargo in the same wagons.
 
 **How to use**
-- Open the line manager, select a line and click a stop to open its stop window.
-- At the bottom, in the new **Unload** card, tick **Custom unloading at this stop**.
-- Set **All cargo** to the share to unload. It applies to the cargo each vehicle
-  carries when it arrives (25 at 50% unloads 13).
-- To give one cargo its own level, click **+**, set the level and click the cargo.
-  0% keeps that cargo aboard. Click a cargo icon to change it or remove it.
-
-Example: a train loads 100 meat. With 50% at the first town and 100% at the second,
-each town receives 50.
+1. Open the line manager, select a line and click a stop.
+2. Tick "Custom unloading at this stop".
+3. Set the All cargo level.
+4. Optional: click + to give a cargo its own level. Click its icon later to change or remove it.
 
 **Good to know**
 - Vehicles don't pick up cargo at a stop with custom unloading.
-- Cargo a station can't accept stays aboard. Cargo is never destroyed.
-- Rules belong to the station and follow it when you add, remove or reorder other stops.
+- Cargo the station can't accept stays aboard. Cargo is never destroyed.
+- Rules are saved with your game and stay with their station when you add, remove or reorder other stops.
+- Stops without custom unloading behave exactly as normal.
 - Passenger vehicles are not affected.
-- Safe to add to existing saves. Before removing the mod, untick custom unloading on
-  your stops and let vehicles finish unloading.
+- Safe to add to existing saves.
 
-**Known limitation:** the game keeps one unload setting per stop. If two vehicles on
-the same line are unloading at the same stop at the same moment, both follow the most
-recent arrival. Vehicles unloading one after another are unaffected.
+**Caveats**
+- Removing the mod from a save game can cause unwanted behavior.
 
 Source code (MIT): https://github.com/Jinxy2004/even-cargo-distributor
