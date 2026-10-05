@@ -14,6 +14,11 @@ class LuaTests(unittest.TestCase):
         lua.globals().source_root = (ROOT / "cargo_distribution_1/content/cargo_distribution").as_posix()
         lua.execute((ROOT / "tests/probe_test.lua").read_text(encoding="utf-8"))
 
+    def test_gui_smoke(self):
+        lua = LuaRuntime(unpack_returned_tuples=True)
+        lua.globals().source_root = (ROOT / "cargo_distribution_1/content/cargo_distribution").as_posix()
+        lua.execute((ROOT / "tests/gui_smoke_test.lua").read_text(encoding="utf-8"))
+
     def test_all_lua_compiles(self):
         lua = LuaRuntime(unpack_returned_tuples=True)
         compiler = lua.eval("function(s,n) local f,e=load(s,n); assert(f,e); return true end")

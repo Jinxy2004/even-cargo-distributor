@@ -71,7 +71,30 @@ override installed.
 **Boundary test PASSED** (reports/BOUNDARY.md): 0, 1, 3 meat and several wool
 rounding cases all exact. User deferred the full-warehouse test (low risk) and will
 test trucks/other carriers informally in-game later. Native feasibility testing is
-effectively complete; next major step is the Unload Rules GUI (LineEowExtensionPoint).
+effectively complete.
+
+**0.2.0-prototype GUI built (untested in game).** User wanted the unload filter inside
+the native stop window (line manager -> stop -> Load / Departure Configuration). That
+window (gui/line_vehicle_mgmt/cargofilter_window.tl) has no extension point, but the
+game ships a documented hook: generic resource type `react-replacement-config`
+(scripts/react.d.tl: ReactReplacementApi.ReplaceRecipe + react.CallOriginalRecipe,
+used by gui/main/bootstrap_game.tl). unload_gui.res.lua registers it; 
+unload_gui.script.lua replaces popover_react_util.PopoverWindowContent and, only when
+its recipe is named "CargoFilterContent", renders the stock content plus our Unload
+card below it (user chose bottom placement; a note rather than blocking the Load card;
+rules follow the station on route edits). No game files copied.
+Runtime now stores rules in saved state per line keyed by station ("<stationGroup>#<visit>"),
+set via CargoDistributionControl {action="setRule", line, stopIndex, stationGroup, rule}.
+Line-name opt-in and config rules removed; schema 3 migrates 0.1.x state. Player edits
+during an applied target are kept (RESTORE_SKIPPED_PLAYER_EDIT); skipped arrivals no
+longer suspend lines; failed restores retried every 30 ticks.
+Tests: tests/probe_test.lua 111 checks, tests/gui_smoke_test.lua 19 checks (fake React),
+run here with texlua (Lua 5.3) since the Windows lupa can't run in the Linux shell.
+Installed to user-data mod folder (14 files hash-match). Uncommitted.
+Unverified assumptions to check in game first: mod .res.lua is picked up as a generic
+resource; ResName "cargo_distribution_1::/cargo_distribution/unload_gui.script" resolves;
+"::/gui/main/..." requires resolve from a mod; the GUI can read the game-script state via
+gameScriptSystem.getEntityForGameScript("cargo_distribution_1::/cargo_distribution/probe.gs").
 
 Give one test at a time and exact instructions. The user previously asked whether
 they were testing just the split or the entire mixed/concurrent gate; make scope

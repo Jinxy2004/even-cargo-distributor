@@ -1,6 +1,6 @@
 -- Pure Lua: no engine access. Integer quantities, persistent resource names.
 local M = {}
-M.schemaVersion = 2
+M.schemaVersion = 3
 
 function M.copy(value)
     if type(value) ~= "table" then return value end
@@ -29,6 +29,41 @@ function M.validateRule(rule)
         end
     end
     return true
+end
+
+-- Copy only the fields a rule may carry; rejects anything validateRule rejects.
+function M.normalizeRule(rule)
+    local valid, reason = M.validateRule(rule)
+    if not valid then return nil, reason end
+    local result = { percentage = rule.percentage, filter = rule.filter, overrides = {} }
+    if rule.filter == "selected" then
+        result.goods = {}
+        for name, on in pairs(rule.goods) do
+            if type(name) == "string" and on == true then result.goods[name] = true end
+        end
+    end
+    for name, p in pairs(rule.overrides or {}) do result.overrides[name] = p end
+    return result
+end
+
+-- Rules follow their station, not the stop number. The key is the station group plus
+-- which visit to that group it is (a line may call at the same station twice).
+-- stopIndex is zero-based, as in native events.
+function M.stationKey(stops, stopIndex)
+    local stop = stops and stops[stopIndex + 1]
+    if not stop then return nil end
+    local visit = 0
+    for i = 1, stopIndex + 1 do
+        if stops[i].stationGroup == stop.stationGroup then visit = visit + 1 end
+    end
+    return tostring(stop.stationGroup) .. "#" .. visit
+end
+
+function M.stopIndexFor(stops, key)
+    for i = 1, #(stops or {}) do
+        if M.stationKey(stops, i - 1) == key then return i - 1 end
+    end
+    return nil
 end
 
 function M.quota(quantity, p)
@@ -116,7 +151,7 @@ end
 
 function M.newState()
     return { schemaVersion = M.schemaVersion, tick = 0, sequence = 0,
-        lines = {}, active = {}, log = {}, disabled = false, failures = 0 }
+        lines = {}, rules = {}, active = {}, log = {}, disabled = false, failures = 0 }
 end
 
 function M.migrate(saved)
@@ -126,6 +161,16 @@ function M.migrate(saved)
         for _, active in pairs(saved.active or {}) do active.targetStatus = "legacy_unknown" end
         saved.disablePending = saved.disabled
         saved.schemaVersion = 2
+    end
+    if saved.schemaVersion == 2 then
+        -- 0.1.x opted lines in by name with stop-number rules from config.lua. Rules now
+        -- come from the stop window. Old records are kept only so the runtime can map any
+        -- still-applied target to its station and restore it; no old rule is carried over.
+        saved.legacyLines = saved.lines or {}
+        saved.lines = {}
+        saved.rules = {}
+        for _, active in pairs(saved.active or {}) do active.legacy = true end
+        saved.schemaVersion = 3
     end
     assert(saved.schemaVersion == M.schemaVersion, "unsupported saved-state version")
     return saved

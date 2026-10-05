@@ -1,8 +1,15 @@
 {
-  "name": "Cargo Distribution — Feasibility Probe",
-  "summary": "Development probe for arrival-based cargo unloading. Test saves only.",
-  "description": "Version 0.1.4-prototype. Opt in by naming one test line Cst CD PROBE. Stop 2 attempts to unload 50% of arrival cargo; stop 3 attempts to unload 100%. This is an instrumented experiment, not a validated gameplay release. Rename the line Cst CD RESET and let the simulation run before removing. Read README.md and TESTING.md. Author credit and licensing must be selected before publication.",
-  "authors": [{"name": "AUTHOR TO BE SELECTED BEFORE PUBLICATION", "role": "CREATOR"}],
-  "tags": ["Script Mod"],
+  "name": "Cargo Distribution (prototype)",
+  "summary": "Unload a percentage of each vehicle's cargo at chosen line stops. Test saves only.",
+  "description": "Version 0.2.0-prototype. Open a stop from the line manager; the stop window now has an Unload card at the bottom. Turn on custom unloading to unload a percentage of the cargo each vehicle carries on arrival, for all cargo or selected cargo, with optional per-cargo percentages. Vehicles do not pick up cargo at such a stop. Known limitation: if two vehicles on the same line unload at the same stop at the same time, both follow the most recent arrival. Prototype: use test saves. Author credit and licensing must be selected before publication.",
+  "authors": [
+    {
+      "name": "AUTHOR TO BE SELECTED BEFORE PUBLICATION",
+      "role": "CREATOR"
+    }
+  ],
+  "tags": [
+    "Script Mod"
+  ],
   "url": ""
 }

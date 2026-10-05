@@ -1,8 +1,12 @@
--- Experimental adapter. Do not promote this to a release without the native gate.
+-- Cargo Distribution runtime. Unload rules are set per line stop from the stop window
+-- and stored in this script's saved state, keyed by station (see core.stationKey).
+-- Commands are only ever sent from serial postUpdate (see reports/CALLBACK-ERROR.md).
 local core = ug_require "cargo_distribution_1::/cargo_distribution/core.lua"
 local config = ug_require "cargo_distribution_1::/cargo_distribution/config.lua"
 local M = {}
 local CT = api.type.ComponentType
+local EVENT_ID = "cargo_distribution_1"
+local CONTROL = "CargoDistributionControl"
 
 local function loadModeName(mode)
     for _, name in ipairs({"LOAD_IF_AVAILABLE", "FULL_LOAD_ANY", "FULL_LOAD_ALL", "LEGACY_UNLOAD_ONLY"}) do
@@ -15,7 +19,9 @@ local function emit(saved, kind, data)
     local item = { tick = saved.tick, kind = kind, data = data }
     saved.log[#saved.log + 1] = item
     while #saved.log > config.maxLogEntries do table.remove(saved.log, 1) end
-    print("[CargoDistribution] " .. core.describe(item))
+    if config.verbose or kind ~= "TRANSFER" then
+        print("[CargoDistribution] " .. core.describe(item))
+    end
 end
 
 local function catalog()
@@ -62,58 +68,95 @@ local function nativeConfig(cfg)
     return result
 end
 
+-- Same settings, allowing for float round-off in maxLoad.
+local function sameConfig(a, b)
+    if not a or not b then return false end
+    if (a.forceUnload == true) ~= (b.forceUnload == true)
+        or (a.destroyForConfigChange == true) ~= (b.destroyForConfigChange == true)
+        or (a.destroyForRefresh == true) ~= (b.destroyForRefresh == true) then return false end
+    local n = math.max(#a.load, #b.load, #a.maxLoad, #b.maxLoad)
+    for i = 1, n do
+        if (a.load[i] == true) ~= (b.load[i] == true) then return false end
+        if math.abs((a.maxLoad[i] or 0) - (b.maxLoad[i] or 0)) > 1e-6 then return false end
+    end
+    return true
+end
+
 local function lineComponent(id)
-    if not api.engine.entityExists(id) then return nil end
+    if not id or not api.engine.entityExists(id) then return nil end
     return api.engine.getComponent(id, CT.LINE)
 end
 
-local function replaceStop(saved, lineId, stopIndex, cfg, loadMode, customFilters)
-    local current = lineComponent(lineId)
-    if not current then return false end
-    local record = saved.lines[tostring(lineId)]
-    if record.route ~= core.route(current.stops) then
-        record.suspended = true
-        emit(saved, "RESTORE_BLOCKED_ROUTE_CHANGED", { line = lineId, stop = stopIndex + 1 })
-        return false
+local function lineRecord(saved, lineId)
+    local key = tostring(lineId)
+    saved.lines[key] = saved.lines[key] or { originals = {} }
+    return saved.lines[key]
+end
+
+local function anyApplied(record)
+    for _, original in pairs(record.originals) do
+        if original.applied then return true end
     end
+    return false
+end
+
+local function ruleFor(saved, lineId, station)
+    local stations = saved.rules[tostring(lineId)]
+    return stations and stations[station] or nil
+end
+
+local function writeStop(saved, lineId, station, cfg, loadMode, customFilters)
+    local current = lineComponent(lineId)
+    local index = current and core.stopIndexFor(current.stops, station)
+    if not index then return false, "station_missing" end
     local copy = api.type.Line.new(current)
     local stops = copy.stops
-    local stop = stops[stopIndex + 1]
+    local stop = stops[index + 1]
     stop.stopConfig = nativeConfig(cfg)
     stop.loadMode = loadMode
-    stops[stopIndex + 1] = stop
+    stops[index + 1] = stop
     copy.stops = stops
     copy.customFilters = customFilters
-    -- Only called from postUpdate. Arrival events are inside a native transaction;
-    -- update runs in a restricted parallel context that explicitly rejects callbacks.
     local accepted = nil
     local ok, reason = pcall(api.cmd.sendCommand, api.cmd.makeLineUpdateCmd(lineId, copy), function(_, success)
         accepted = success
     end)
     if not ok then
-        emit(saved, "COMMAND_ERROR", { line = lineId, stop = stopIndex + 1, reason = tostring(reason) })
-        return false
+        emit(saved, "COMMAND_ERROR", { line = lineId, station = station, reason = tostring(reason) })
+        return false, "command_error"
     end
     if accepted ~= true then
-        emit(saved, "COMMAND_NOT_CONFIRMED", { line = lineId, stop = stopIndex + 1,
-            callback = tostring(accepted) })
+        emit(saved, "COMMAND_NOT_CONFIRMED", { line = lineId, station = station, callback = tostring(accepted) })
     end
     return accepted == true
 end
 
-local function restoreStop(saved, lineId, stopIndex)
+local function restoreStop(saved, lineId, station)
     local record = saved.lines[tostring(lineId)]
-    local original = record and record.originals[tostring(stopIndex)]
+    local original = record and record.originals[station]
     if not original or not original.applied then return true end
-    local otherApplied = false
-    for key, v in pairs(record.originals) do
-        if key ~= tostring(stopIndex) and v.applied then otherApplied = true end
+    local current = lineComponent(lineId)
+    local index = current and core.stopIndexFor(current.stops, station)
+    if not index then
+        record.originals[station] = nil
+        emit(saved, "RESTORE_SKIPPED_STATION_REMOVED", { line = lineId, station = station })
+        return true
     end
-    local ok = replaceStop(saved, lineId, stopIndex, original.config,
-        api.type.Line.LoadMode[original.loadMode], otherApplied or record.customFilters)
+    -- If the player changed this stop while our temporary target was in place,
+    -- their change wins; writing the old settings back would silently undo it.
+    if original.written and not sameConfig(plainConfig(current.stops[index + 1].stopConfig), original.written) then
+        record.originals[station] = nil
+        emit(saved, "RESTORE_SKIPPED_PLAYER_EDIT", { line = lineId, station = station, stop = index + 1 })
+        return true
+    end
+    original.applied = false
+    local customFilters = anyApplied(record) or record.customFilters
+    original.applied = true
+    local ok = writeStop(saved, lineId, station, original.config,
+        api.type.Line.LoadMode[original.loadMode], customFilters)
     if ok then
-        original.applied = false
-        emit(saved, "RESTORED", { line = lineId, stop = stopIndex + 1 })
+        record.originals[station] = nil
+        emit(saved, "RESTORED", { line = lineId, station = station, stop = index + 1 })
     end
     return ok
 end
@@ -121,82 +164,124 @@ end
 local function restoreLine(saved, lineId)
     local record = saved.lines[tostring(lineId)]
     if not record then return end
-    for index in pairs(record.originals) do restoreStop(saved, lineId, tonumber(index)) end
-    record.suspended = true
+    local stations = {}
+    for station in pairs(record.originals) do stations[#stations + 1] = station end
+    table.sort(stations)
+    for _, station in ipairs(stations) do restoreStop(saved, lineId, station) end
 end
 
-local function anotherActive(saved, lineId, stopIndex, except)
+local function anotherActive(saved, lineId, station, except)
     for vehicle, active in pairs(saved.active) do
-        if vehicle ~= except and active.line == lineId and active.stop == stopIndex then return true end
+        if vehicle ~= except and active.line == lineId and active.station == station then return true end
     end
     return false
 end
 
-local function watchLines(saved)
-    for _, lineId in ipairs(api.engine.system.lineSystem.getLinesForPlayer(api.engine.util.getPlayer())) do
-        local name = api.engine.util.getEntityName(lineId)
-        local key = tostring(lineId)
-        local record = saved.lines[key]
-        local current = lineComponent(lineId)
-        if record and (name ~= config.lineName or saved.disabled) then
-            restoreLine(saved, lineId)
-        elseif record and core.route(current.stops) ~= record.route then
-            if not record.suspended then emit(saved, "SUSPENDED_ROUTE_CHANGED", { line = lineId }) end
-            record.suspended = true
-        elseif not record and name == config.lineName and not saved.disabled then
-            saved.lines[key] = { route = core.route(current.stops),
-                customFilters = current.customFilters, originals = {}, suspended = false }
-            emit(saved, "ARMED", { line = lineId, name = name, rules = config.rules })
+-- 0.1.x state: map any still-applied stop-number record to its station once.
+local function convertLegacy(saved)
+    if not saved.legacyLines then return end
+    for lineKey, record in pairs(saved.legacyLines) do
+        local current = lineComponent(tonumber(lineKey))
+        if current then
+            for index, original in pairs(record.originals or {}) do
+                local station = core.stationKey(current.stops, tonumber(index))
+                if original.applied and station then
+                    local target = lineRecord(saved, tonumber(lineKey))
+                    target.customFilters = record.customFilters
+                    target.originals[station] = original
+                end
+            end
+        end
+    end
+    for _, active in pairs(saved.active) do
+        if active.legacy and not active.station then
+            local current = lineComponent(active.line)
+            active.station = current and core.stationKey(current.stops, active.stop) or "legacy"
+            active.targetStatus = active.targetStatus == "pending" and "legacy_unknown" or active.targetStatus
+        end
+    end
+    saved.legacyLines = nil
+    emit(saved, "MIGRATED_LEGACY_STATE", {})
+end
+
+-- Rules follow their station. Drop rules whose station or line no longer exists.
+local function watchRules(saved)
+    for lineKey, stations in pairs(saved.rules) do
+        local current = lineComponent(tonumber(lineKey))
+        if not current then
+            saved.rules[lineKey] = nil
+            emit(saved, "RULES_DROPPED_LINE_REMOVED", { line = tonumber(lineKey) })
+        else
+            for station in pairs(stations) do
+                if not core.stopIndexFor(current.stops, station) then
+                    stations[station] = nil
+                    emit(saved, "RULE_DROPPED_STATION_REMOVED", { line = tonumber(lineKey), station = station })
+                end
+            end
+            if next(stations) == nil then saved.rules[lineKey] = nil end
         end
     end
 end
 
+-- A restore can fail (e.g. a rejected command). Retry any that are still owed.
+local function retryRestores(saved)
+    for lineKey, record in pairs(saved.lines) do
+        local lineId = tonumber(lineKey)
+        for station, original in pairs(record.originals) do
+            if original.applied and not anotherActive(saved, lineId, station) then
+                restoreStop(saved, lineId, station)
+            end
+        end
+        if next(record.originals) == nil then saved.lines[lineKey] = nil end
+    end
+end
+
 local function arrive(saved, param)
+    if saved.disabled then return end
     local vehicle, lineId, stopIndex = param.vehicleEntity, param.lineEntity, param.stopIndex
-    local record = saved.lines[tostring(lineId)]
-    local rule = config.rules[stopIndex + 1]
-    if saved.disabled or not record or record.suspended or not rule then return end
-    if api.engine.util.getEntityName(lineId) ~= config.lineName then return end
     local current = lineComponent(lineId)
-    if not current or core.route(current.stops) ~= record.route then record.suspended = true; return end
+    if not current then return end
+    local station = core.stationKey(current.stops, stopIndex)
+    local rule = station and ruleFor(saved, lineId, station)
+    if not rule then return end
     local key = tostring(vehicle)
     if saved.active[key] then
         emit(saved, "DUPLICATE_OR_OVERLAPPING_ARRIVAL", { vehicle = vehicle, stop = stopIndex + 1 })
         return
     end
     local component = api.engine.getComponent(vehicle, CT.TRANSPORT_VEHICLE)
-    local quantities = amounts(vehicle)
     if (api.engine.system.simEntityAtVehicleSystem.getVehicleSimEntitiesCountForCargoType(vehicle,
         api.res.cargoTypeRep.getPassengerCargoTypeId()) or 0) > 0 then
         emit(saved, "SKIPPED_PASSENGERS", { vehicle = vehicle }); return
     end
     -- maxLoad is a fraction of compatible capacity across all configurations, not
     -- just the compartments currently configured for this cargo.
-    local ok, snapshot = pcall(core.snapshot, quantities, capacities(vehicle, true), rule)
+    local ok, snapshot = pcall(core.snapshot, amounts(vehicle), capacities(vehicle, true), rule)
     if not ok then
-        record.suspended = true
         emit(saved, "PROBE_ERROR", { reason = tostring(snapshot), vehicle = vehicle })
         return
     end
     saved.sequence = saved.sequence + 1
-    local active = { line = lineId, stop = stopIndex, sequence = saved.sequence,
+    local active = { line = lineId, stop = stopIndex, station = station, sequence = saved.sequence,
         tick = saved.tick, snapshot = snapshot, unknownTransfers = 0,
         targetStatus = "pending",
         departureMarker = component.lastLineStopDeparture,
-        overlap = anotherActive(saved, lineId, stopIndex, key) }
+        overlap = anotherActive(saved, lineId, station, key) }
     if active.overlap then
         for _, other in pairs(saved.active) do
-            if other.line == lineId and other.stop == stopIndex then other.overlap = true end
+            if other.line == lineId and other.station == station then other.overlap = true end
         end
     end
     saved.active[key] = active
-    local original = record.originals[tostring(stopIndex)]
-    if not original then
+    local record = lineRecord(saved, lineId)
+    local original = record.originals[station]
+    if not original or not original.applied then
+        if not anyApplied(record) then record.customFilters = current.customFilters end
         local stop = current.stops[stopIndex + 1]
-        original = { config = plainConfig(stop.stopConfig), loadMode = loadModeName(stop.loadMode), applied = false }
-        record.originals[tostring(stopIndex)] = original
+        record.originals[station] = { config = plainConfig(stop.stopConfig),
+            loadMode = loadModeName(stop.loadMode), applied = false }
     end
-    emit(saved, "ARRIVAL", { vehicle = vehicle, line = lineId, stop = stopIndex + 1,
+    emit(saved, "ARRIVAL", { vehicle = vehicle, line = lineId, stop = stopIndex + 1, station = station,
         sequence = active.sequence, overlap = active.overlap, cargo = snapshot,
         loadState = tostring(component.loadState), targetStatus = "pending",
         allCapacities = capacities(vehicle, true), configuredCapacities = capacities(vehicle) })
@@ -212,11 +297,12 @@ local function applyPending(saved)
     for _, pending in ipairs(queue) do
         local active, vehicle = pending.active, tonumber(pending.key)
         local record = saved.lines[tostring(active.line)]
+        local original = record and record.originals[active.station]
         local current = lineComponent(active.line)
         local reason = nil
-        if saved.disabled or not record or record.suspended then reason = "disabled_or_suspended"
-        elseif not current or record.route ~= core.route(current.stops) then reason = "route_changed"
-        elseif api.engine.util.getEntityName(active.line) ~= config.lineName then reason = "line_renamed"
+        if saved.disabled then reason = "disabled"
+        elseif not current or not original or not core.stopIndexFor(current.stops, active.station) then
+            reason = "station_removed"
         else
             local now, caps = amounts(vehicle), capacities(vehicle, true)
             if active.unknownTransfers > 0 then reason = "unattributed_transfer_before_target" end
@@ -227,13 +313,12 @@ local function applyPending(saved)
             end
         end
         if reason then
+            -- Only this arrival is skipped. The stop keeps its normal settings for it.
             active.targetStatus = "skipped"
             active.targetError = reason
-            if record then record.suspended = true end
             emit(saved, "TARGET_SKIPPED", { vehicle = vehicle, sequence = active.sequence,
                 line = active.line, stop = active.stop + 1, reason = reason })
         else
-            local original = record.originals[tostring(active.stop)]
             local candidate = core.copy(original.config)
             candidate.forceUnload, candidate.destroyForConfigChange, candidate.destroyForRefresh = false, false, false
             for id, name in pairs(catalog()) do
@@ -243,14 +328,14 @@ local function applyPending(saved)
             end
             -- Keep restoration owed even if the callback is unexpectedly absent.
             original.applied = true
-            local accepted = replaceStop(saved, active.line, active.stop, candidate,
+            original.written = candidate
+            local accepted = writeStop(saved, active.line, active.station, candidate,
                 api.type.Line.LoadMode.LOAD_IF_AVAILABLE, true)
             active.targetStatus = accepted and "applied" or "unconfirmed"
             active.appliedTick = saved.tick
-            if not accepted then record.suspended = true end
             emit(saved, "TARGET_WRITTEN", { vehicle = vehicle, line = active.line, stop = active.stop + 1,
-                sequence = active.sequence, arrivalTick = active.tick, applyTick = saved.tick,
-                target = candidate, applied = accepted, commandPhase = "postUpdate" })
+                station = active.station, sequence = active.sequence, arrivalTick = active.tick,
+                applyTick = saved.tick, target = candidate, applied = accepted, commandPhase = "postUpdate" })
         end
     end
 end
@@ -299,7 +384,7 @@ local function finishDepartures(saved)
                 end
                 if not result.safe then saved.failures = saved.failures + 1 end
                 emit(saved, "RESULT", { sequence = active.sequence, vehicle = vehicle,
-                    line = active.line, stop = active.stop + 1, overlap = active.overlap,
+                    line = active.line, stop = active.stop + 1, station = active.station, overlap = active.overlap,
                     arrivalTick = active.tick, targetStatus = active.targetStatus, targetError = active.targetError,
                     cargo = active.snapshot, departure = departure, result = result })
             else
@@ -311,7 +396,48 @@ local function finishDepartures(saved)
     for _, key in ipairs(finished) do
         local active = saved.active[key]
         saved.active[key] = nil
-        if not anotherActive(saved, active.line, active.stop) then restoreStop(saved, active.line, active.stop) end
+        if not anotherActive(saved, active.line, active.station) then
+            restoreStop(saved, active.line, active.station)
+        end
+    end
+end
+
+-- Requests from the stop window. Runs inside a native event: state only, no commands.
+local function control(saved, param)
+    param = param or {}
+    if param.action == "setRule" then
+        local lineId, stopIndex = tonumber(param.line), tonumber(param.stopIndex)
+        local current = lineComponent(lineId)
+        local stop = current and stopIndex and current.stops[stopIndex + 1]
+        if not stop or stop.stationGroup ~= param.stationGroup then
+            emit(saved, "RULE_REJECTED", { line = lineId, stop = stopIndex, reason = "stop_changed" })
+            return
+        end
+        local station = core.stationKey(current.stops, stopIndex)
+        local lineKey = tostring(lineId)
+        if not param.rule then
+            if saved.rules[lineKey] then saved.rules[lineKey][station] = nil end
+            if saved.rules[lineKey] and next(saved.rules[lineKey]) == nil then saved.rules[lineKey] = nil end
+            emit(saved, "RULE_CLEARED", { line = lineId, station = station, stop = stopIndex + 1 })
+            return
+        end
+        local rule, reason = core.normalizeRule(param.rule)
+        if not rule then
+            emit(saved, "RULE_REJECTED", { line = lineId, stop = stopIndex + 1, reason = reason })
+            return
+        end
+        saved.rules[lineKey] = saved.rules[lineKey] or {}
+        saved.rules[lineKey][station] = rule
+        emit(saved, "RULE_SET", { line = lineId, station = station, stop = stopIndex + 1, rule = rule })
+    elseif param.action == "disable" then
+        saved.disabled = true
+        saved.disablePending = true
+        emit(saved, "DISABLE_QUEUED", { active = saved.active })
+    elseif param.action == "enable" then
+        saved.disabled = false
+        emit(saved, "ENABLED", {})
+    elseif param.action == "status" then
+        emit(saved, "STATUS", { rules = saved.rules, lines = saved.lines })
     end
 end
 
@@ -320,7 +446,7 @@ function M.update(_, state, dt)
         state:subscribeToEvent("OnArriveAtStop")
         state:subscribeToEvent("OnCargoLoaded")
         state:subscribeToEvent("OnCargoUnloaded")
-        state:subscribeToEvent("CargoDistributionControl")
+        state:subscribeToEvent(CONTROL)
     end
     -- Parallel update can read an older snapshot than an intervening cargo event.
     -- Never set script state here: doing so overwrites the event's newer counters.
@@ -331,35 +457,33 @@ end
 function M.postUpdate(_, state, dt, updateResult)
     if dt <= 0 or not updateResult or not updateResult.advance then return end
     local saved = core.migrate(state:get())
-    -- postUpdate is the serial command phase used by the game's own scripts.
     -- An extra callback for the same tick must not issue a second line command.
     if saved.lastPostUpdateTick == updateResult.tick then return end
     saved.lastPostUpdateTick = updateResult.tick
     saved.tick = updateResult.tick
     if saved.version ~= config.version then
-        saved.started = true
         saved.version = config.version
         emit(saved, "STARTUP", { version = config.version, build = getBuildVersion(), catalog = catalog() })
     end
+    convertLegacy(saved)
     if saved.disablePending then
         for line in pairs(saved.lines) do restoreLine(saved, tonumber(line)) end
         saved.disablePending = false
         emit(saved, "DISABLED", { active = saved.active })
     end
     finishDepartures(saved)
-    if saved.tick % 30 == 1 then watchLines(saved) end
+    if saved.tick % 30 == 1 then
+        watchRules(saved)
+        retryRestores(saved)
+    end
     applyPending(saved)
     state:set(saved)
 end
 
 function M.handleEvent(_, state, _, id, name, param)
     local saved = core.migrate(state:get())
-    if name == "CargoDistributionControl" and id == "cargo_distribution_1" then
-        if param.action == "disable" then
-            saved.disabled = true
-            saved.disablePending = true
-            emit(saved, "DISABLE_QUEUED", { active = saved.active })
-        elseif param.action == "status" then emit(saved, "STATUS", saved.lines) end
+    if name == CONTROL and id == EVENT_ID then
+        control(saved, param)
     elseif id == "TransportVehicleSystem" then
         if name == "OnArriveAtStop" then arrive(saved, param)
         elseif name == "OnCargoLoaded" or name == "OnCargoUnloaded" then transfers(saved, name, param) end

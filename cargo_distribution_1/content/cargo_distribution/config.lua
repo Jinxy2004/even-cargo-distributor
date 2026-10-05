@@ -1,20 +1,9 @@
--- Development-only opt-in. Stop numbers here are ONE-BASED, as in the UI.
--- Existing lines are untouched unless their name exactly matches lineName.
--- The Cst prefix also exempts the line from Auto Line Namer's automatic renaming.
+-- Rules are set per stop in the game's stop window (Unload card). Nothing here opts
+-- a line in. These are development settings only.
 return {
-    version = "0.1.4-prototype",
-    lineName = "Cst CD PROBE",
-    resetName = "Cst CD RESET",
-    maxLogEntries = 800,
-    rules = {
-        -- Per-cargo override test: town one unloads 50% of meat, 25% of wool.
-        [2] = { percentage = 50, filter = "automatic",
-                overrides = { ["::/cargos/wool/wool.cargo"] = 25 } },
-        [3] = { percentage = 100, filter = "automatic", overrides = {} },
-    },
-    -- For a mixed-cargo test replace a rule with e.g.:
-    -- { percentage = 50, filter = "selected",
-    --   goods = { ["EXACT RESOURCE NAME FROM CATALOG LOG"] = true },
-    --   overrides = { ["EXACT RESOURCE NAME FROM CATALOG LOG"] = 25 } }
-    -- Use resource names, never numeric cargo IDs. Reload after editing.
+    version = "0.2.0-prototype",
+    -- Ring buffer kept in the saved state. The stop window reads this state, so keep it small.
+    maxLogEntries = 100,
+    -- Print every unload/load event to stdout.txt (needed for native test traces).
+    verbose = true,
 }

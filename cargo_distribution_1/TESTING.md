@@ -1,3 +1,27 @@
+# Native testing (0.2.0-prototype)
+
+0.1.4 passed the native gate with config-file rules (see reports/: FULL-TRIP, MIXED,
+SAVE-RELOAD, OVERRIDE, BOUNDARY; CONCURRENT is the accepted limitation). 0.2.0 replaces
+the line-name/config opt-in with the stop-window Unload card. Re-verify:
+
+1. **Card appears:** line manager -> stop window shows Unload at the bottom; other
+   popovers are unchanged; no errors in stdout.txt.
+2. **Set a rule:** tick custom unloading at town one, 50%. stdout shows RULE_SET with
+   the station key. Run a train: exact result as in FULL-TRIP.
+3. **Selected cargo + Own %:** repeat MIXED and OVERRIDE through the card.
+4. **Untick:** RULE_CLEARED; next arrival unloads normally.
+5. **Route edit:** add a stop elsewhere on the line; the rule stays on the same
+   station. Remove the station; RULE_DROPPED_STATION_REMOVED.
+6. **Player edit during unload:** change the stop's Load card while a train is
+   unloading; RESTORE_SKIPPED_PLAYER_EDIT and the change is kept.
+7. **Save/reload** with a rule set: the card still shows it.
+
+Collect logs before restarting the game: `python tools/collect_log.py <stdout.txt> --output reports/<name>.log`.
+
+---
+
+Earlier 0.1.x protocol (kept for reference):
+
 # Native feasibility test protocol
 
 Record build, mod version, vehicle ID/mode, capacity, arrival quantity, warehouse

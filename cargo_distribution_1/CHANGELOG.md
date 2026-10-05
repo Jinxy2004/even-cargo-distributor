@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.0-prototype
+
+- New Unload card at the bottom of the game's stop window (line manager -> stop).
+  Added through the game's documented recipe-replacement hook; no game files are
+  copied or modified. Settings: on/off, unload percentage, all or selected cargo,
+  optional per-cargo percentage.
+- Rules are stored in the save, per line, keyed by station, and follow the station
+  when stops are added, removed or reordered. A rule is dropped (and logged) when its
+  station leaves the line. The line-name opt-in and config.lua rules are gone.
+- A stop the player edits while a temporary target is in place keeps the player's
+  edit; the old settings are not written back over it.
+- Skipped arrivals (e.g. cargo moved before the target could be set) no longer
+  suspend the line permanently; only that arrival is left alone.
+- Failed restores are retried. Saved-state schema 3; 0.1.x saves are converted and
+  any still-applied 0.1.x target is restored.
+
 ## 0.1.4-prototype
 
 - Keep persistent-state writes in serial postUpdate and event handlers. Parallel
