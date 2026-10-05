@@ -22,6 +22,57 @@ yes/two usable platforms, no/one platform, or not sure. No answer had arrived wh
 this handoff was written. Ask for that information in the new session if necessary;
 do not assume a two-platform setup. Mixed goods/filtering comes after this test.
 
+**Update (next session):** user answered: trains; town one has ONE platform for this
+line today. Plan given: keep the armed line untouched as evidence, rename it to
+Cst CD RESET (verify RESTORED), then build a fresh line named Cst CD PROBE whose
+town-one stop already has a second platform as an alternative terminal (and pickup
+too), with two trains of different capacity. Fresh line ID = fresh record, so no
+code change/rearm control is needed. Route setup must be finished BEFORE naming it.
+
+**Concurrent result (later same session): FAILED gate.** See reports/CONCURRENT.md.
+Second arrival's target (0.48) overwrote the first vehicle's (0.42) mid-unload:
+82979 kept 24/43 instead of 21. **User decision: accept as a documented known limitation
+(rare to need it) and continue.** Do not build the workaround unless asked. Next test:
+mixed goods/filtering (meat + one other cargo), then dedicated no-pickup scenario.
+Second concurrent run collected (reports/native-0.1.4-concurrent-2.log): one more
+dwell overlap, both exact because the first train finished unloading 12 ticks before
+the second arrived — limitation only bites when unloading itself overlaps.
+
+**Mixed test prepared:** config stop 2 = selected {meat} 50% (wool kept aboard),
+stop 3 = automatic 100%. Installed config.lua into user-data mod; all 12 files
+hash-match workspace. Wagons accept wool (cap 50, shared wagon with meat). Run with
+ONE train unloading at a time. Watch: does the per-cargo maxLoad fraction behave
+per cargo in a shared wagon? Wool target uses load=true, so town one must not
+supply wool (pickup risk). Unit tests can't run in the Linux device shell (Windows
+lupa); config verified with texlua instead.
+
+**Mixed test PASSED** (reports/MIXED.md): 25/25 and 22/24 meat/wool -> half meat,
+no wool at town one; everything at town two; all exact, no pickup/destruction.
+No-pickup: user reports town one has a warehouse holding meat and wool, and no run
+ever picked any up (logs: loaded=0 throughout). Accepted, with the caveat that it is
+unconfirmed whether warehouse cargo is offered for loading at that stop. By design,
+loading could only trigger if cargo aboard fell below the target, which the targets
+prevent except in the known concurrency case. Next: remaining acceptance items
+(overrides, save/reload mid-unload, full warehouse, boundaries) or start the GUI.
+
+**Save/reload PASSED** (reports/SAVE-RELOAD.md): saved after 5 of 13 meat, loaded,
+resumed to exactly 13, wool kept, restored. Remaining edge cases: per-cargo
+overrides, full/incompatible warehouse, boundary amounts (0/1/3), other carriers.
+
+**Override test prepared:** stop 2 = automatic 50% with wool override 25%; stop 3
+unchanged. Installed; all 12 files hash-match. Expected 25/25 -> unload 13 meat + 6
+wool; 22/24 -> 11 meat + 6 wool. Needs a full game restart.
+
+**Override test PASSED** (reports/OVERRIDE.md): 25/25 -> 13 meat + 6 wool unloaded,
+12/19 left, all unloaded at town two; exact, no pickup. Remaining: full/incompatible
+warehouse, boundary amounts (0/1/3), other carriers. Config still has the wool
+override installed.
+
+**Boundary test PASSED** (reports/BOUNDARY.md): 0, 1, 3 meat and several wool
+rounding cases all exact. User deferred the full-warehouse test (low risk) and will
+test trucks/other carriers informally in-game later. Native feasibility testing is
+effectively complete; next major step is the Unload Rules GUI (LineEowExtensionPoint).
+
 Give one test at a time and exact instructions. The user previously asked whether
 they were testing just the split or the entire mixed/concurrent gate; make scope
 explicit. They offered to perform all native in-game testing. Leave game control

@@ -7,7 +7,9 @@ return {
     resetName = "Cst CD RESET",
     maxLogEntries = 800,
     rules = {
-        [2] = { percentage = 50, filter = "automatic", overrides = {} },
+        -- Per-cargo override test: town one unloads 50% of meat, 25% of wool.
+        [2] = { percentage = 50, filter = "automatic",
+                overrides = { ["::/cargos/wool/wool.cargo"] = 25 } },
         [3] = { percentage = 100, filter = "automatic", overrides = {} },
     },
     -- For a mixed-cargo test replace a rule with e.g.:

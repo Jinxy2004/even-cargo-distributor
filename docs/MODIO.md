@@ -25,7 +25,8 @@ Reuse license: **USER SELECTION REQUIRED**. Do not imply a license was chosen.
 ## Required release work
 
 1. Pass the native feasibility gate and full acceptance matrix. Record tested build
-   and mod version, results and observed limitations.
+   and mod version, results and observed limitations. Known limitation to disclose:
+   overlapping unloads at one stop share a target (reports/CONCURRENT.md).
 2. Finish end-user GUI and documentation; replace the diagnostic line-name workflow.
 3. Resolve creator/license fields. Produce original cover art and real screenshots
    of 100→50→0 and 60→30→0 deliveries; do not fabricate proof images. Cover and gameplay

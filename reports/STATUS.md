@@ -17,10 +17,14 @@ Current prototype: **0.1.4-prototype**, revision 5, saved schema 2.
 | Deferred target runs before transfers | Passed in recorded full trip | 0.1.4: both targets accepted in postUpdate before first transfer |
 | Single-vehicle 50% partial load and full trip | Passed in native game | 0.1.4: 16 meat → 8 → 0; 8 delivered to each town; user confirmed |
 | Persisted transfer counters | Passed in native full trip | Both stops count all 8 unload events; exact=true, safe=true, no failures |
-| Mixed loads unload exactly | Pending | Required gate |
-| No pickup at custom stops | None observed; dedicated test pending | Full trip had loaded=0; still test with pickup cargo available |
-| Concurrent arrivals use independent targets | Not run | Required gate |
-| Native save/reload and all carrier modes | Not run | Acceptance tests |
+| Boundary amounts (0, 1, 3, small odd) | **Passed in native game** | All exact with half-up rounding. See BOUNDARY.md |
+| Full/incompatible warehouse | Deferred by user | User judged low risk (destruction always disabled) |
+| Per-cargo percentage overrides | **Passed in native game** | Meat 50% / wool 25%: 25/25 -> 13/6 unloaded. See OVERRIDE.md |
+| Mixed loads unload exactly | **Passed in native game** | Meat 50% only, wool kept; 2 trains, all exact. See MIXED.md |
+| No pickup at custom stops | Passed in native runs (one caveat) | Town one has a warehouse holding meat and wool; loaded=0 in every run. Caveat: unconfirmed whether that warehouse cargo is offered for loading at the line stop |
+| Concurrent arrivals use independent targets | **Failed — accepted as known limitation** | Shared stop target; later arrival overwrites an in-progress vehicle. User accepted (rare case). See CONCURRENT.md |
+| Native save/reload during unloading | **Passed in native game** | Saved after 5/13 meat, reloaded; resumed to 13 exact, restored. See SAVE-RELOAD.md |
+| All carrier modes (truck, ship, air, tram) | Not run | Acceptance tests |
 | Native staging validator | Not run | No report exists yet |
 | Clean game installation of packaged ZIP | Not run | Archive integrity alone is insufficient |
 | Public release | Blocked | Gate, validation, metadata and user publication request pending |
@@ -95,3 +99,13 @@ Next: overlapping arrivals with different retained/capacity ratios, followed by
 mixed goods/filtering and a dedicated no-pickup scenario. The station's ability to
 unload two vehicles concurrently is not yet known. Work is handing off to a fresh
 session at the user's request; see [HANDOFF.md](../HANDOFF.md).
+
+## Concurrent arrivals: known limitation (user decision)
+
+Overlapping unloading at the same line stop failed: the second train's target (keep
+48%) overwrote the first's (keep 42%) mid-unload, so the first kept 24/43 instead
+of 21. No pickup or destruction; settings restored. The user judged two trains on
+one line unloading together at the same stop rare and chose to **document this as
+a known limitation and continue** rather than stop or build a workaround. The
+untested highest-target-first idea remains recorded in CONCURRENT.md. Next: mixed
+goods/filtering, then the dedicated no-pickup test. See [CONCURRENT.md](CONCURRENT.md).
