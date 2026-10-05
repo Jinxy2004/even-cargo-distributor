@@ -1,6 +1,11 @@
-# Native testing (0.2.0-prototype)
+# In-game testing
 
-0.1.4 passed the native gate with config-file rules (see reports/: FULL-TRIP, MIXED,
+Set `verbose = true` in `config.lua` first so stdout.txt carries the full trace
+(arrivals, targets, every transfer, results). Set it back to false before releasing.
+
+## Interface checks (added in 0.2.0, passed by the user in game)
+
+0.1.4 passed the native gate with config-file rules (see test-reports/: FULL-TRIP, MIXED,
 SAVE-RELOAD, OVERRIDE, BOUNDARY; CONCURRENT is the accepted limitation). 0.2.0 replaces
 the line-name/config opt-in with the stop-window Unload card. Re-verify:
 
@@ -16,7 +21,7 @@ the line-name/config opt-in with the stop-window Unload card. Re-verify:
    unloading; RESTORE_SKIPPED_PLAYER_EDIT and the change is kept.
 7. **Save/reload** with a rule set: the card still shows it.
 
-Collect logs before restarting the game: `python tools/collect_log.py <stdout.txt> --output reports/<name>.log`.
+Collect logs before restarting the game: `python tools/collect_log.py <stdout.txt> --output docs/test-reports/logs/<name>.log`.
 
 ---
 

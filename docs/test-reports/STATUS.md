@@ -1,3 +1,13 @@
+# Test status
+
+**1.0.0 (release):** all native gameplay checks below passed on the 0.1.4 engine logic,
+unchanged since except for rule storage (per station, set from the stop-window Unload
+card, verified in game by the user in 0.2.0). Concurrent unloading at one stop is an
+accepted, documented limitation. Deferred: full/incompatible warehouse; non-rail carriers
+(tested informally in play). Earlier history follows.
+
+---
+
 # Feasibility and release status
 
 Updated: 2026-10-05 America/New_York. Inspected game: **40408 Windows 64-bit**.

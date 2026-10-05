@@ -1,56 +1,68 @@
-# Eventual mod.io release
+# Publishing on mod.io
 
-Stable mod ID: **cargo_distribution_1**. Working title: **Cargo Distribution**.
-Development version: **0.1.4-prototype**. First public version is reserved for a
-validated implementation; do not publish this diagnostic build as a working mod.
+Transport Fever 3 publishes mods from the in-game mod manager: the mod folder goes in
+the user-data `staging_area`, the game validates and cooks it, then uploads it to
+mod.io under your account.
 
-## Draft listing (use only after acceptance)
+## Steps
 
-Title: Cargo Distribution
+1. `python tools/test.py` — all tests pass.
+2. `python tools/build.py` — checks the release metadata (author, license, version,
+   changelog, `verbose = false`, `_content.json`) and builds `dist/cargo_distribution-1.0.0.zip`.
+3. Copy the mod to the staging area:
+   `.\tools\install-local.ps1 -UserData 'C:\Users\Public\Documents\Steam\RUNE\3493540\local' -Staging`
+4. Start the game -> Mod manager -> Staging area -> Cargo Distribution.
+   Run **Validate**. Fix anything critical for PC; review warnings. Console-only
+   findings can be noted (the mod is untested on console).
+5. Add the logo (`media/logo.png`, 1280x720) and gallery screenshots (see below).
+6. Fill in the listing from the text below, then **Publish**. Set it public when ready.
+7. After publishing, subscribe from mod.io on a clean setup, start a fresh test save
+   and repeat a quick 50% trip to confirm the published build works.
 
-Summary: Control how much cargo each stop receives, with percentages based on the
-load aboard on arrival and optional filters for each type of goods.
+For updates: keep the mod ID, raise `version` in `config.lua`, `revision` in
+`mod.json`, add a CHANGELOG entry, and add a saved-state migration in `core.migrate`
+if the saved data changes.
 
-Description draft: Add unloading rules to a line's stops. Keep Automatic — all goods,
-or choose exactly which cargo types a stop can receive and give each its own percentage.
-Custom stops unload only. For two equal deliveries, unload 50% at the first town and
-100% of the remainder at the second. Stops without rules retain the game's usual
-behavior. Cargo that cannot be accepted remains aboard. Disable the rules and restore
-native settings before removing the mod from a save.
+## Screenshots to take (in game, real results only)
 
-Category/tag: Script Mod. Initial platform: Windows.
-Author/creator: **USER SELECTION REQUIRED**. Contributor credits: **REVIEW REQUIRED**.
-Reuse license: **USER SELECTION REQUIRED**. Do not imply a license was chosen.
+1. The stop window with the Unload card: All cargo 50% and one cargo icon with its own level.
+2. A train at town one after unloading, showing about half its cargo still aboard.
+3. The cargo picker (after clicking +).
 
-## Required release work
+## Listing
 
-1. Pass the native feasibility gate and full acceptance matrix. Record tested build
-   and mod version, results and observed limitations. Known limitation to disclose:
-   overlapping unloads at one stop share a target (reports/CONCURRENT.md).
-2. Finish end-user GUI and documentation; replace the diagnostic line-name workflow.
-3. Resolve creator/license fields. Produce original cover art and real screenshots
-   of 100→50→0 and 60→30→0 deliveries; do not fabricate proof images. Cover and gameplay
-   screenshots have not been created while the gate is pending.
-4. Build only owned content. No game archives, executables, proprietary GUI source,
-   save files, local test tools or development paths belong in the release ZIP.
-5. Put the owned source mod in the game's staging area using the native workflow.
-   Run the staging validator and save the full report (including PC/console flags).
-   Fix all PC critical errors and review other findings. Record untested platforms.
-6. Use the installed native publisher's cooking/packaging workflow, then install the
-   resulting package from a clean copy and rerun smoke/acceptance checks.
-7. Only after the user explicitly requests account submission/public release, use
-   the native mod.io publishing flow. Do not trigger publish as a validation shortcut.
+**Name:** Cargo Distribution
 
-The installed API defines `ModPublishHelper.validate(modId)` as validation-only;
-`publish(modId, publishSettings)` validates, cooks and uploads. Its settings include
-changeLog, updateMetadata, setPublic, isSavegame, issuesConfirmed and additionalMetadata.
-Online examples may have a different signature; use installed build definitions.
+**Summary:** Unload a set percentage of each vehicle's cargo at chosen line stops, per
+cargo type, from the stop window.
 
-Official references:
-- [Publishing API](https://wiki.transportfever3.com/script-doc/api/type/modhub.html#Modhub.ModPublishHelper.publish)
-- [Transport Fever 3 mod.io community](https://mod.io/g/transportfever3)
+**Tags:** Script Mod
 
-Keep the mod ID stable across compatible updates. Increase semantic versions and
-native revisions appropriately, and introduce explicit saved-schema migrations when
-changing persistent data. A future schema currently fails closed rather than being
-silently reset. Keep migration fixtures and test old saves before releasing updates.
+**Description:**
+
+Split a delivery between the stops on a line instead of dumping everything at the first one.
+
+**How to use**
+- Open the line manager, select a line and click a stop to open its stop window.
+- At the bottom, in the new **Unload** card, tick **Custom unloading at this stop**.
+- Set **All cargo** to the share to unload. It applies to the cargo each vehicle
+  carries when it arrives (25 at 50% unloads 13).
+- To give one cargo its own level, click **+**, set the level and click the cargo.
+  0% keeps that cargo aboard. Click a cargo icon to change it or remove it.
+
+Example: a train loads 100 meat. With 50% at the first town and 100% at the second,
+each town receives 50.
+
+**Good to know**
+- Vehicles don't pick up cargo at a stop with custom unloading.
+- Cargo a station can't accept stays aboard. Cargo is never destroyed.
+- Rules belong to the station and follow it when you add, remove or reorder other stops.
+- Passenger vehicles are not affected.
+- Safe to add to existing saves. Before removing the mod, untick custom unloading on
+  your stops and let vehicles finish unloading.
+
+**Known limitation:** the game keeps one unload setting per stop. If two vehicles on
+the same line are unloading at the same stop at the same moment, both follow the most
+recent arrival. Vehicles unloading one after another are unaffected.
+
+Source code (MIT): https://github.com/Jinxy2004/even-cargo-distributor

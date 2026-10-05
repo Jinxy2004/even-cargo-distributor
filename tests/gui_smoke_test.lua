@@ -59,7 +59,7 @@ api = { type = { ComponentType = { LINE = "LINE", TRANSPORT_VEHICLE = "TV", GAME
             if ct == "GS" then return { state = scriptState } end
         end,
         system = { gameScriptSystem = { getEntityForGameScript = function(n)
-                check(n == "cargo_distribution_1::/cargo_distribution/probe.gs", "script name"); return 77 end },
+                check(n == "cargo_distribution_1::/cargo_distribution/cargo_distribution.gs", "script name"); return 77 end },
             transportVehicleSystem = { getLineVehicles = function() return { 500 } end } } },
     cmd = { makeScriptingSendEventCmd = function(src, id, name, p) return { id = id, name = name, p = p } end } }
 data = nil

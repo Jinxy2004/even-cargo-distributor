@@ -1,9 +1,10 @@
--- Rules are set per stop in the game's stop window (Unload card). Nothing here opts
--- a line in. These are development settings only.
+-- Rules are set per stop in the game's stop window (Unload card); nothing here opts
+-- a line in. Developer settings only.
 return {
-    version = "0.2.0-prototype",
-    -- Ring buffer kept in the saved state. The stop window reads this state, so keep it small.
-    maxLogEntries = 100,
-    -- Print every unload/load event to stdout.txt (needed for native test traces).
-    verbose = true,
+    version = "1.0.0",
+    -- Entries kept in the saved state's log ring buffer.
+    maxLogEntries = 30,
+    -- true: print every arrival, target, transfer and result to stdout.txt
+    -- (used for native test traces). false for releases: only problems and rule changes.
+    verbose = false,
 }

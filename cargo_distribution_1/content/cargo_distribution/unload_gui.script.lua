@@ -11,7 +11,7 @@ local gui_react_util = ug_require "::/gui/main/gui_react_util.tl"
 local core = ug_require "cargo_distribution_1::/cargo_distribution/core.lua"
 
 local M = {}
-local SCRIPT = "cargo_distribution_1::/cargo_distribution/probe.gs"
+local SCRIPT = "cargo_distribution_1::/cargo_distribution/cargo_distribution.gs"
 local STOP_WINDOW_CONTENT = "CargoFilterContent" -- the game's stop window content recipe
 local DEFAULT_PERCENT = 50
 

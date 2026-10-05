@@ -1,6 +1,8 @@
 -- Cargo Distribution runtime. Unload rules are set per line stop from the stop window
 -- and stored in this script's saved state, keyed by station (see core.stationKey).
--- Commands are only ever sent from serial postUpdate (see reports/CALLBACK-ERROR.md).
+-- Engine commands are only ever sent from serial postUpdate: arrival events run inside
+-- a native transaction and parallel update forbids callbacks
+-- (docs/test-reports/ARRIVAL-CRASH.md, CALLBACK-ERROR.md).
 local core = ug_require "cargo_distribution_1::/cargo_distribution/core.lua"
 local config = ug_require "cargo_distribution_1::/cargo_distribution/config.lua"
 local M = {}
@@ -15,13 +17,17 @@ local function loadModeName(mode)
     error("unknown native loading mode")
 end
 
+-- Routine per-vehicle records are only printed/kept when config.verbose is on.
+-- Problems, rule changes and unsafe results are always printed to stdout.txt.
+local ROUTINE = { TRANSFER = true, ARRIVAL = true, TARGET_WRITTEN = true, RESULT = true, RESTORED = true }
+
 local function emit(saved, kind, data)
+    local routine = ROUTINE[kind] and not (kind == "RESULT" and data.result and not data.result.safe)
+    if routine and not config.verbose then return end
     local item = { tick = saved.tick, kind = kind, data = data }
     saved.log[#saved.log + 1] = item
     while #saved.log > config.maxLogEntries do table.remove(saved.log, 1) end
-    if config.verbose or kind ~= "TRANSFER" then
-        print("[CargoDistribution] " .. core.describe(item))
-    end
+    print("[CargoDistribution] " .. core.describe(item))
 end
 
 local function catalog()
@@ -39,6 +45,16 @@ local function amounts(vehicle)
             .getVehicleSimEntitiesCountForCargoType(vehicle, id)
     end
     return values
+end
+
+-- Only cargo actually aboard is snapshotted (keeps the saved state small). Cargo not
+-- in the snapshot gets no pickup target; any unexpected transfer of it is counted.
+local function aboard(values)
+    local result = {}
+    for name, count in pairs(values) do
+        if count and count > 0 then result[name] = count end
+    end
+    return result
 end
 
 local function capacities(vehicle, allConfigurations)
@@ -256,9 +272,9 @@ local function arrive(saved, param)
     end
     -- maxLoad is a fraction of compatible capacity across all configurations, not
     -- just the compartments currently configured for this cargo.
-    local ok, snapshot = pcall(core.snapshot, amounts(vehicle), capacities(vehicle, true), rule)
+    local ok, snapshot = pcall(core.snapshot, aboard(amounts(vehicle)), capacities(vehicle, true), rule)
     if not ok then
-        emit(saved, "PROBE_ERROR", { reason = tostring(snapshot), vehicle = vehicle })
+        emit(saved, "SNAPSHOT_ERROR", { reason = tostring(snapshot), vehicle = vehicle })
         return
     end
     saved.sequence = saved.sequence + 1
@@ -284,7 +300,7 @@ local function arrive(saved, param)
     emit(saved, "ARRIVAL", { vehicle = vehicle, line = lineId, stop = stopIndex + 1, station = station,
         sequence = active.sequence, overlap = active.overlap, cargo = snapshot,
         loadState = tostring(component.loadState), targetStatus = "pending",
-        allCapacities = capacities(vehicle, true), configuredCapacities = capacities(vehicle) })
+        configuredCapacities = config.verbose and capacities(vehicle) or nil })
     -- Only the snapshot and pending status are saved here. postUpdate owns all commands.
 end
 
@@ -463,7 +479,8 @@ function M.postUpdate(_, state, dt, updateResult)
     saved.tick = updateResult.tick
     if saved.version ~= config.version then
         saved.version = config.version
-        emit(saved, "STARTUP", { version = config.version, build = getBuildVersion(), catalog = catalog() })
+        emit(saved, "STARTUP", { version = config.version, build = getBuildVersion(),
+            catalog = config.verbose and catalog() or nil })
     end
     convertLegacy(saved)
     if saved.disablePending then

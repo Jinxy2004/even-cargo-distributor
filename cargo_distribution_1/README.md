@@ -1,10 +1,10 @@
-# Cargo Distribution (prototype 0.2.0)
+# Cargo Distribution 1.0.0
 
 Unload a set percentage of the cargo each vehicle carries when it arrives at a stop,
 instead of unloading everything. Example: a train arrives at the first town with 100
 meat; with 50% set there, it unloads 50 and carries the other 50 on to the next town.
 
-**Prototype. Use a test save.**
+By bobbyhill1239. MIT licensed (see LICENSE).
 
 ## How to use
 
@@ -44,7 +44,7 @@ everything at once, run this in the debug console and let the game run a moment:
 
 ```lua
 api.cmd.sendCommand(api.cmd.makeScriptingSendEventCmd(
-  "cargo_distribution_probe", "cargo_distribution_1",
+  "cargo_distribution_console", "cargo_distribution_1",
   "CargoDistributionControl", {action="disable"}))
 ```
 

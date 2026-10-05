@@ -86,7 +86,12 @@ function state:set(v)
 end
 function state:hasEventSubscriptions() return next(self.subscriptions)~=nil end
 function state:subscribeToEvent(name) self.subscriptions[name]=true end
-function ug_require(path) return dofile(source_root.."/"..path:match("([^/]+)$")) end
+local verbose=true -- native-trace mode, so the log can be inspected below
+function ug_require(path)
+    local m=dofile(source_root.."/"..path:match("([^/]+)$"))
+    if path:match("config%.lua$") then m.verbose=verbose end
+    return m
+end
 function getBuildVersion() return "FAKE ENGINE - not a native result" end
 api={type={ComponentType={LINE="LINE",TRANSPORT_VEHICLE="TV",SIM_CARGO="CARGO",SIM_ENTITY_AT_VEHICLE="SEAV"},
     Line={new=core.copy,StopConfig={new=function()return{}end},
@@ -111,28 +116,28 @@ api={type={ComponentType={LINE="LINE",TRANSPORT_VEHICLE="TV",SIM_CARGO="CARGO",S
             line=core.copy(cmd.value);commands[#commands+1]=cmd
             if callback then callback({},true,{}) end
         end}}
-local function loadProbe()
+local function loadRuntime()
     data=nil
-    dofile(source_root.."/probe.script.lua")
+    dofile(source_root.."/runtime.script.lua")
     check(type(data)=="function", ".script.lua must expose the native data entry point")
     local resource=data()
     check(type(resource)=="table" and type(resource.update)=="function", "native resource returns script table")
     check(type(resource.postUpdate)=="function", "serial postUpdate entry point exists")
     return resource
 end
-local probe=loadProbe()
+local runtime=loadRuntime()
 local function update(n)
     for _=1,n or 1 do
         phase="update"
-        local result=probe.update({},state,1)
+        local result=runtime.update({},state,1)
         phase="postUpdate"
-        if probe.postUpdate then probe.postUpdate({},state,1,result) end
+        if runtime.postUpdate then runtime.postUpdate({},state,1,result) end
     end
     phase="idle"
 end
 local function event(name,param,id)
     phase="event"
-    probe.handleEvent({},state,"",id or "TransportVehicleSystem",name,param)
+    runtime.handleEvent({},state,"",id or "TransportVehicleSystem",name,param)
     phase="idle"
 end
 local function control(param) event("CargoDistributionControl",param,"cargo_distribution_1") end
@@ -175,7 +180,7 @@ eq(state.value.active["10"].snapshot.meat.arrival,60,"arrival snapshot persisted
 eq(state.value.active["10"].targetStatus,"pending","target pending in saved state")
 arrival(10)
 eq(state.value.sequence,1,"duplicate pending arrival does not recalculate")
-probe=loadProbe()
+runtime=loadRuntime()
 update()
 eq(line.stops[2].stopConfig.maxLoad[2],0.3,"60 arriving out of capacity 100 retains 30")
 eq(line.stops[2].stopConfig.maxLoad[3],0,"goods absent on arrival have zero pickup target")
@@ -286,27 +291,27 @@ for _, entry in ipairs(state.value.log) do if entry.kind=="RESULT" then latestRe
 check(latestResult~=nil and not latestResult.exact,"unapplied target cannot count as an exact pass")
 
 -- Descriptor + restricted update + duplicate postUpdate.
-data=nil;dofile(source_root.."/probe.gs.lua")
-eq(data().postUpdateScript.fileName,"probe.script@postUpdate","native descriptor registers serial phase")
+data=nil;dofile(source_root.."/cargo_distribution.gs.lua")
+eq(data().postUpdateScript.fileName,"runtime.script@postUpdate","native descriptor registers serial phase")
 reset();setRule(1,half)
 vehicles[10]={line=1,stopIndex=1,lastLineStopDeparture=0,loadState="Arrived",config={capacities={0,25,175},allCaps={0,225,225}}}
 cargoCounts[10][1]=16
 update();before=#commands;arrival(10)
 phase="update"
-local step=probe.update({},state,1)
+local step=runtime.update({},state,1)
 eq(#commands,before,"restricted update issues no command or callback")
 phase="postUpdate"
-probe.postUpdate({},state,1,step)
+runtime.postUpdate({},state,1,step)
 eq(#commands,before+1,"serial postUpdate applies target once")
 eq(line.stops[2].stopConfig.maxLoad[2],8/225,"16 meat retains 8 using 225 compatible capacity")
-probe.postUpdate({},state,1,step)
+runtime.postUpdate({},state,1,step)
 eq(#commands,before+1,"duplicate serial callback cannot replay the target")
 phase="idle"
 
 -- A paused frame leaves pending work intact.
 reset();setRule(1,half);update();before=#commands;arrival(10)
-phase="update";step=probe.update({},state,0)
-phase="postUpdate";probe.postUpdate({},state,0,step);phase="idle"
+phase="update";step=runtime.update({},state,0)
+phase="postUpdate";runtime.postUpdate({},state,0,step);phase="idle"
 eq(#commands,before,"paused update cannot submit queued commands")
 eq(state.value.active["10"].targetStatus,"pending","paused arrival remains pending")
 
@@ -358,4 +363,12 @@ check(state.value.legacyLines==nil,"legacy records converted once")
 unload(10,30);depart(10);update()
 eq(core.describe(line),core.describe(originals),"legacy applied target restored after upgrade")
 check(state.value.rules["1"]==nil,"no 0.1.x rule carried into the new system")
+-- Release mode: routine records are neither printed nor kept; problems still are.
+verbose=false;runtime=loadRuntime()
+reset();setRule(1,half);arrival(10);update();unload(10,30);depart(10);update()
+local kinds={}
+for _,e in ipairs(state.value.log) do kinds[e.kind]=true end
+check(not kinds.TRANSFER and not kinds.ARRIVAL and not kinds.RESULT,"quiet mode keeps routine records out of the save")
+check(kinds.RULE_SET,"quiet mode still records rule changes")
+eq(core.describe(line),core.describe(originals),"quiet mode behaves identically")
 print("CHECKS_PASSED="..count.." (pure Lua and mocked lifecycle only)")
