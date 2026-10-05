@@ -1,0 +1,9 @@
+{
+  "archives": null,
+  "files": [
+    "cargo_distribution/config.lua",
+    "cargo_distribution/core.lua",
+    "cargo_distribution/probe.gs.lua",
+    "cargo_distribution/probe.script.lua"
+  ]
+}

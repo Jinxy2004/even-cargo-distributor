@@ -1,0 +1,8 @@
+.tools/
+__pycache__/
+dist/
+local/
+*.tmp
+*.sav
+*.sav.*
+.git.sandbox-backup/

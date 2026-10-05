@@ -1,0 +1,33 @@
+test_all_lua_compiles (__main__.LuaTests.test_all_lua_compiles) ... ok
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.0-prototype},kind=STARTUP,tick=0}
+[CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
+[CargoDistribution] {data={cargo={grain={arrival=0,capacity=50,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=60,capacity=100,destroyed=0,loaded=0,percentage=50,quota=30,retained=30,target=0.3,unloaded=0}},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,vehicle=10},kind=ARRIVAL,tick=1}
+test_core_and_lifecycle (__main__.LuaTests.test_core_and_lifecycle) ... ERROR
+
+======================================================================
+ERROR: test_core_and_lifecycle (__main__.LuaTests.test_core_and_lifecycle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\TSF3Mod\tools\test.py", line 15, in test_core_and_lifecycle
+    lua.execute((ROOT / "tests/probe_test.lua").read_text(encoding="utf-8"))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "lupa/lua54.pyx", line 441, in lupa.lua54.LuaRuntime.execute
+  File "lupa/lua54.pyx", line 1872, in lupa.lua54.run_lua
+  File "lupa/lua54.pyx", line 1886, in lupa.lua54.call_lua
+  File "lupa/lua54.pyx", line 1913, in lupa.lua54.execute_lua_call
+  File "lupa/lua54.pyx", line 1794, in lupa.lua54.raise_lua_error
+lupa.lua54.LuaError: [string "<python>"]:89: regression: engine mutation attempted from an event callback
+stack traceback:
+	[C]: in function 'assert'
+	[string "<python>"]:89: in field 'sendCommand'
+	...stribution_1/content/cargo_distribution/probe.script.lua:85: in upvalue 'replaceStop'
+	...stribution_1/content/cargo_distribution/probe.script.lua:191: in upvalue 'arrive'
+	...stribution_1/content/cargo_distribution/probe.script.lua:281: in field 'handleEvent'
+	[string "<python>"]:109: in upvalue 'event'
+	[string "<python>"]:112: in local 'arrival'
+	[string "<python>"]:123: in main chunk
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.003s
+
+FAILED (errors=1)
