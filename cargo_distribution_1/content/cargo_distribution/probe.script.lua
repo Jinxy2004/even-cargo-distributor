@@ -38,7 +38,8 @@ end
 local function capacities(vehicle, allConfigurations)
     local values = {}
     local component = api.engine.getComponent(vehicle, CT.TRANSPORT_VEHICLE)
-    local native = allConfigurations and component.config.allCaps or component.config.capacities
+    local native = component.config.capacities
+    if allConfigurations then native = component.config.allCaps end
     for id, name in pairs(catalog()) do values[name] = native and native[id + 1] or 0 end
     return values
 end
@@ -169,7 +170,9 @@ local function arrive(saved, param)
         api.res.cargoTypeRep.getPassengerCargoTypeId()) or 0) > 0 then
         emit(saved, "SKIPPED_PASSENGERS", { vehicle = vehicle }); return
     end
-    local ok, snapshot = pcall(core.snapshot, quantities, capacities(vehicle), rule)
+    -- maxLoad is a fraction of compatible capacity across all configurations, not
+    -- just the compartments currently configured for this cargo.
+    local ok, snapshot = pcall(core.snapshot, quantities, capacities(vehicle, true), rule)
     if not ok then
         record.suspended = true
         emit(saved, "PROBE_ERROR", { reason = tostring(snapshot), vehicle = vehicle })
@@ -196,7 +199,7 @@ local function arrive(saved, param)
     emit(saved, "ARRIVAL", { vehicle = vehicle, line = lineId, stop = stopIndex + 1,
         sequence = active.sequence, overlap = active.overlap, cargo = snapshot,
         loadState = tostring(component.loadState), targetStatus = "pending",
-        allCapacities = capacities(vehicle, true) })
+        allCapacities = capacities(vehicle, true), configuredCapacities = capacities(vehicle) })
     -- Only the snapshot and pending status are saved here. postUpdate owns all commands.
 end
 
@@ -215,7 +218,7 @@ local function applyPending(saved)
         elseif not current or record.route ~= core.route(current.stops) then reason = "route_changed"
         elseif api.engine.util.getEntityName(active.line) ~= config.lineName then reason = "line_renamed"
         else
-            local now, caps = amounts(vehicle), capacities(vehicle)
+            local now, caps = amounts(vehicle), capacities(vehicle, true)
             if active.unknownTransfers > 0 then reason = "unattributed_transfer_before_target" end
             for name, item in pairs(active.snapshot) do
                 if item.loaded > 0 or item.unloaded > 0 or (now[name] or 0) ~= item.arrival then

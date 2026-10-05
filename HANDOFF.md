@@ -52,7 +52,7 @@ concurrency support based on unit tests.
 - First native load found the mod but reported `function data() not defined`.
   Fixed .script.lua to expose data() and reinstalled. Restart/reload succeeded:
   user reported no error, and the log confirms STARTUP on build 40408.
-  Lua tests now contain 95 passing assertions, including resource entry-point and
+  Lua tests now contain 97 passing assertions, including resource entry-point and
   event-callback mutation regression checks.
 - Git ownership was corrected by preserving the empty sandbox-created repository in
   .git.sandbox-backup (ignored), then initializing a new .git as the user's account.
@@ -73,6 +73,14 @@ concurrency support based on unit tests.
   patterns. Timing guards and command confirmation remain. Installed 0.1.2 and
   hash-verified all 12 files. User is retesting from a pre-error save; result pending.
   See reports/CALLBACK-ERROR.md; do not infer native feasibility from the rejected command.
+- Version 0.1.2 native retest: postUpdate command accepted without callback error.
+  User and log show 16 meat retained at town one, all unloaded at town two. Logging
+  revealed configured capacity 25 vs allCaps 225. Version 0.1.3 corrects the native
+  fraction to retained/allCaps (8/225), while the quota remains 50% of arrival.
+  Installed 0.1.3 and hash-verified all 12 files. User is replaying the same test;
+  native result pending. See reports/CAPACITY-CONVERSION.md.
+- Commit ea04854 with the command-phase fix was pushed to the fix branch. The capacity
+  correction is a follow-up on that same branch.
 
 ## Resume steps
 

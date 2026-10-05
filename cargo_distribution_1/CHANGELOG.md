@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.3-prototype
+
+- Correct native target conversion to use all compatible compartment capacity
+  (allCaps), not only compartments currently configured for the cargo.
+- Preserve arrival-based quotas: 16 meat at 50% still means 8 to unload; a train
+  with 225 compatible capacity receives a retention fraction of 8/225, not 8/25.
+- Add a regression case with different configured and compatible capacities.
+- Native 0.1.2 verified successful serial commands, but the wrong denominator caused
+  zero delivery at town one and full delivery at town two. Native 0.1.3 retest is pending.
+
 ## 0.1.2-prototype
 
 - Register postUpdate and move native commands into that serial phase. Version

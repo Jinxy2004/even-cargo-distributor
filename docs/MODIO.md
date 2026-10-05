@@ -1,7 +1,7 @@
 # Eventual mod.io release
 
 Stable mod ID: **cargo_distribution_1**. Working title: **Cargo Distribution**.
-Development version: **0.1.2-prototype**. First public version is reserved for a
+Development version: **0.1.3-prototype**. First public version is reserved for a
 validated implementation; do not publish this diagnostic build as a working mod.
 
 ## Draft listing (use only after acceptance)

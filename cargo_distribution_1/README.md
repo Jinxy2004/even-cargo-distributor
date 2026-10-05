@@ -1,6 +1,6 @@
 # Cargo Distribution — feasibility probe
 
-Version **0.1.2-prototype** · Mod ID **cargo_distribution_1** · Windows
+Version **0.1.3-prototype** · Mod ID **cargo_distribution_1** · Windows
 
 This development build tests whether Transport Fever 3's native loading targets
 can implement percentages of cargo aboard **on arrival**. Exact native behavior
@@ -70,6 +70,10 @@ Passengers aboard cause a probe arrival to be skipped. No passenger features are
 implemented. No executables, base game assets, or modified copies of native GUI
 code are included. Author credit and reuse licensing remain undecided.
 
-After updating from 0.1.0 or 0.1.1, restart the game and load the ordinary test save made
+Native targets use total compatible capacity (`allCaps`), including compartments
+that can switch goods. The player's percentage always applies to arrival cargo:
+16 aboard at 50% means 8 to unload, even if compatible capacity is 225.
+
+After updating, restart the game and load the ordinary test save made
 before the failed test. Do not use the automatically generated `crash_...` save for the
 retest. Older saved snapshots are preserved but are never replayed as new arrivals.

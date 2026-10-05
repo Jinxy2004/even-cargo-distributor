@@ -58,8 +58,8 @@ for i=1,3 do
 end
 local originals=core.copy(line)
 local vehicles={
-    [10]={line=1,stopIndex=1,lastLineStopDeparture=0,loadState="Arrived",config={capacities={0,100,50}}},
-    [11]={line=1,stopIndex=1,lastLineStopDeparture=0,loadState="Arrived",config={capacities={0,100,50}}},
+    [10]={line=1,stopIndex=1,lastLineStopDeparture=0,loadState="Arrived",config={capacities={0,100,50},allCaps={0,100,50}}},
+    [11]={line=1,stopIndex=1,lastLineStopDeparture=0,loadState="Arrived",config={capacities={0,100,50},allCaps={0,100,50}}},
 }
 local cargoCounts={[10]={[0]=0,[1]=60,[2]=0},[11]={[0]=0,[1]=100,[2]=0}}
 local entities={}
@@ -207,7 +207,7 @@ eq(#commands,before,"unmanaged lines stay untouched")
 
 -- Native crash regression: snapshots and disable requests cannot issue commands in events.
 state.value={};line=core.copy(originals);lineName=cfg.lineName
-vehicles[10]={line=1,stopIndex=1,lastLineStopDeparture=0,loadState="Arrived",config={capacities={0,25,175}}}
+vehicles[10]={line=1,stopIndex=1,lastLineStopDeparture=0,loadState="Arrived",config={capacities={0,25,175},allCaps={0,225,225}}}
 vehicles[11].stopIndex=1
 cargoCounts[10][1]=10;cargoCounts[11][1]=60
 update();before=#commands;arrival(11);arrival(10)
@@ -215,7 +215,7 @@ eq(#commands,before,"two arrivals in one engine transaction cannot send commands
 update()
 eq(#commands,before+2,"both pending targets applied in next update")
 eq(commands[before+1].value.stops[2].stopConfig.maxLoad[2],0.3,"pending targets preserve arrival order")
-eq(commands[before+2].value.stops[2].stopConfig.maxLoad[2],0.2,"real crash case: 10 meat keeps 5 of 25 capacity")
+eq(commands[before+2].value.stops[2].stopConfig.maxLoad[2],5/225,"10 meat keeps 5 of 225 compatible capacity")
 before=#commands
 event("CargoDistributionControl",{action="disable"},"cargo_distribution_1")
 eq(#commands,before,"disable event cannot mutate engine")
@@ -265,7 +265,9 @@ eq(state.value.active["10"].targetStatus,"pending","pending arrival survives res
 phase="postUpdate"
 probe.postUpdate({},state,1,step)
 eq(#commands,before+1,"serial postUpdate applies target once")
-eq(line.stops[2].stopConfig.maxLoad[2],0.32,"16 meat of capacity 25 retains 8")
+eq(line.stops[2].stopConfig.maxLoad[2],8/225,"16 meat retains 8 using 225 compatible capacity")
+eq(state.value.active["10"].snapshot.meat.capacity,225,"snapshot uses compatible capacity, not configured 25")
+eq(state.value.active["10"].snapshot.meat.quota,8,"unload quota remains half of 16 on arrival")
 eq(state.value.active["10"].targetStatus,"applied","serial callback confirms command")
 probe.postUpdate({},state,1,step)
 eq(#commands,before+1,"duplicate serial callback cannot replay the target")

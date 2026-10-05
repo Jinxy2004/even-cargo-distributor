@@ -1,7 +1,7 @@
 {
   "name": "Cargo Distribution — Feasibility Probe",
   "summary": "Development probe for arrival-based cargo unloading. Test saves only.",
-  "description": "Version 0.1.2-prototype. Opt in by naming one test line Cst CD PROBE. Stop 2 attempts to unload 50% of arrival cargo; stop 3 attempts to unload 100%. This is an instrumented experiment, not a validated gameplay release. Rename the line Cst CD RESET and let the simulation run before removing. Read README.md and TESTING.md. Author credit and licensing must be selected before publication.",
+  "description": "Version 0.1.3-prototype. Opt in by naming one test line Cst CD PROBE. Stop 2 attempts to unload 50% of arrival cargo; stop 3 attempts to unload 100%. This is an instrumented experiment, not a validated gameplay release. Rename the line Cst CD RESET and let the simulation run before removing. Read README.md and TESTING.md. Author credit and licensing must be selected before publication.",
   "authors": [{"name": "AUTHOR TO BE SELECTED BEFORE PUBLICATION", "role": "CREATOR"}],
   "tags": ["Script Mod"],
   "url": ""

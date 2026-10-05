@@ -10,7 +10,7 @@ Do not edit native Load settings during a probe run.
 
 1. **Load smoke test:** enable this mod and load the test save. Let it run briefly.
    The log must contain STARTUP with build and cargo catalog and no script errors.
-   For version 0.1.2, verify ARRIVAL is followed by TARGET_WRITTEN with
+   For version 0.1.3, verify ARRIVAL is followed by TARGET_WRITTEN with
    `commandPhase=postUpdate` and `applied=true`. A TARGET_SKIPPED timing failure requires investigation; do
    not count that run as proof of working percentage unloading.
 2. **Single vehicle:** source → accepting warehouse A → accepting warehouse B.
