@@ -14,7 +14,9 @@ mod.io under your account.
 4. Start the game -> Mod manager -> Staging area -> Cargo Distribution.
    Run **Validate**. Fix anything critical for PC; review warnings. Console-only
    findings can be noted (the mod is untested on console).
-5. Add the logo (`media/logo.png`, 1280x720) and gallery screenshots (see below).
+5. The cover image is `cargo_distribution_1/_metadata/0.png` (a copy of `media/logo.png`,
+   1280x720); the publisher reports "No valid cover image found" without it. Add
+   gallery screenshots (see below).
 6. Fill in the listing from the text below, then **Publish**. Set it public when ready.
 7. After publishing, subscribe from mod.io on a clean setup, start a fresh test save
    and repeat a quick 50% trip to confirm the published build works.

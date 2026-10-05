@@ -30,6 +30,7 @@ def checks(ver: str) -> None:
         assert marker not in blob, f"modinfo.json still contains {marker!r}"
     assert info.get("authors"), "modinfo.json needs an author"
     assert (SOURCE / "LICENSE").is_file(), "LICENSE missing from the mod folder"
+    assert (SOURCE / "_metadata/0.png").is_file(), "cover image _metadata/0.png missing (copy media/logo.png)"
     config = (SOURCE / "content/cargo_distribution/config.lua").read_text(encoding="utf-8")
     assert re.search(r"verbose\s*=\s*false", config), "config.lua: verbose must be false for a release"
     changelog = (SOURCE / "CHANGELOG.md").read_text(encoding="utf-8")
