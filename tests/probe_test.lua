@@ -91,7 +91,9 @@ api={type={ComponentType={LINE="LINE",TRANSPORT_VEHICLE="TV",SIM_CARGO="CARGO",S
                 return cargoCounts[v][c] or 0 end}}},
     cmd={makeLineUpdateCmd=function(id,value)return{id=id,value=value}end,
         sendCommand=function(cmd,callback)
-            assert(phase=="update", "regression: engine mutation attempted from an event callback")
+            assert(phase~="event", "regression: engine mutation attempted from an event callback")
+            assert(not (phase=="update" and callback), "Callbacks are currently disallowed")
+            assert(phase=="postUpdate", "mod commands belong in postUpdate")
             line=core.copy(cmd.value);commands[#commands+1]=cmd
             if callback then callback({},true,{}) end
         end}}
@@ -101,12 +103,17 @@ local function loadProbe()
     check(type(data)=="function", ".script.lua must expose the native data entry point")
     local resource=data()
     check(type(resource)=="table" and type(resource.update)=="function", "native resource returns script table")
+    check(type(resource.postUpdate)=="function", "serial postUpdate entry point exists")
     return resource
 end
 local probe=loadProbe()
 local function update(n)
-    phase="update"
-    for _=1,n or 1 do probe.update({},state,1) end
+    for _=1,n or 1 do
+        phase="update"
+        local result=probe.update({},state,1)
+        phase="postUpdate"
+        if probe.postUpdate then probe.postUpdate({},state,1,result) end
+    end
     phase="idle"
 end
 local function event(name,param,id)
@@ -244,4 +251,39 @@ check(state.value.active["10"]==nil,"departed pending arrival is closed")
 local latestResult
 for _, entry in ipairs(state.value.log) do if entry.kind=="RESULT" then latestResult=entry.data.result end end
 check(latestResult~=nil and not latestResult.exact,"unapplied target cannot count as an exact pass")
+
+-- Regression for build 40408's restricted update: descriptor + both lifecycle phases.
+data=nil;dofile(source_root.."/probe.gs.lua")
+eq(data().postUpdateScript.fileName,"probe.script@postUpdate","native descriptor registers serial phase")
+state.value={};line=core.copy(originals);lineName=cfg.lineName;vehicles[10].stopIndex=1
+cargoCounts[10][1]=16
+update();before=#commands;arrival(10)
+phase="update"
+local step=probe.update({},state,1)
+eq(#commands,before,"restricted update issues no command or callback")
+eq(state.value.active["10"].targetStatus,"pending","pending arrival survives restricted update")
+phase="postUpdate"
+probe.postUpdate({},state,1,step)
+eq(#commands,before+1,"serial postUpdate applies target once")
+eq(line.stops[2].stopConfig.maxLoad[2],0.32,"16 meat of capacity 25 retains 8")
+eq(state.value.active["10"].targetStatus,"applied","serial callback confirms command")
+probe.postUpdate({},state,1,step)
+eq(#commands,before+1,"duplicate serial callback cannot replay the target")
+phase="idle"
+
+-- A paused frame leaves pending work intact without attempting a native command.
+state.value={};line=core.copy(originals);lineName=cfg.lineName
+update();before=#commands;arrival(10)
+phase="update";step=probe.update({},state,0)
+phase="postUpdate";probe.postUpdate({},state,0,step);phase="idle"
+eq(#commands,before,"paused update cannot submit queued commands")
+eq(state.value.active["10"].targetStatus,"pending","paused arrival remains pending")
+
+-- Recoverable command errors are logged, not rethrown as repeated game error dialogs.
+local normalSend=api.cmd.sendCommand
+api.cmd.sendCommand=function()error("simulated command failure")end
+update()
+eq(state.value.active["10"].targetStatus,"unconfirmed","command exception is not an accepted target")
+check(state.value.lines["1"].suspended,"command exception suspends rule")
+api.cmd.sendCommand=normalSend
 print("CHECKS_PASSED="..count.." (pure Lua and mocked lifecycle only)")

@@ -35,10 +35,11 @@ local function amounts(vehicle)
     return values
 end
 
-local function capacities(vehicle)
+local function capacities(vehicle, allConfigurations)
     local values = {}
     local component = api.engine.getComponent(vehicle, CT.TRANSPORT_VEHICLE)
-    for id, name in pairs(catalog()) do values[name] = component.config.capacities[id + 1] or 0 end
+    local native = allConfigurations and component.config.allCaps or component.config.capacities
+    for id, name in pairs(catalog()) do values[name] = native and native[id + 1] or 0 end
     return values
 end
 
@@ -82,12 +83,16 @@ local function replaceStop(saved, lineId, stopIndex, cfg, loadMode, customFilter
     stops[stopIndex + 1] = stop
     copy.stops = stops
     copy.customFilters = customFilters
-    -- Engine-context commands are synchronous. Never call this from handleEvent:
-    -- OnArriveAtStop runs inside the engine's own component modification transaction.
+    -- Only called from postUpdate. Arrival events are inside a native transaction;
+    -- update runs in a restricted parallel context that explicitly rejects callbacks.
     local accepted = nil
-    api.cmd.sendCommand(api.cmd.makeLineUpdateCmd(lineId, copy), function(_, success)
+    local ok, reason = pcall(api.cmd.sendCommand, api.cmd.makeLineUpdateCmd(lineId, copy), function(_, success)
         accepted = success
     end)
+    if not ok then
+        emit(saved, "COMMAND_ERROR", { line = lineId, stop = stopIndex + 1, reason = tostring(reason) })
+        return false
+    end
     if accepted ~= true then
         emit(saved, "COMMAND_NOT_CONFIRMED", { line = lineId, stop = stopIndex + 1,
             callback = tostring(accepted) })
@@ -190,8 +195,9 @@ local function arrive(saved, param)
     end
     emit(saved, "ARRIVAL", { vehicle = vehicle, line = lineId, stop = stopIndex + 1,
         sequence = active.sequence, overlap = active.overlap, cargo = snapshot,
-        loadState = tostring(component.loadState), targetStatus = "pending" })
-    -- Only the snapshot and pending status are saved here. M.update owns all commands.
+        loadState = tostring(component.loadState), targetStatus = "pending",
+        allCapacities = capacities(vehicle, true) })
+    -- Only the snapshot and pending status are saved here. postUpdate owns all commands.
 end
 
 local function applyPending(saved)
@@ -241,7 +247,7 @@ local function applyPending(saved)
             if not accepted then record.suspended = true end
             emit(saved, "TARGET_WRITTEN", { vehicle = vehicle, line = active.line, stop = active.stop + 1,
                 sequence = active.sequence, arrivalTick = active.tick, applyTick = saved.tick,
-                target = candidate, applied = accepted })
+                target = candidate, applied = accepted, commandPhase = "postUpdate" })
         end
     end
 end
@@ -321,15 +327,26 @@ function M.update(_, state, dt)
     end
     if dt > 0 then
         saved.tick = saved.tick + 1
-        if saved.disablePending then
-            for line in pairs(saved.lines) do restoreLine(saved, tonumber(line)) end
-            saved.disablePending = false
-            emit(saved, "DISABLED", { active = saved.active })
-        end
-        finishDepartures(saved)
-        if saved.tick % 30 == 1 then watchLines(saved) end
-        applyPending(saved)
     end
+    state:set(saved)
+    return { tick = saved.tick, advance = dt > 0 }
+end
+
+function M.postUpdate(_, state, dt, updateResult)
+    if dt <= 0 or not updateResult or not updateResult.advance then return end
+    local saved = core.migrate(state:get())
+    -- postUpdate is the serial command phase used by the game's own scripts.
+    -- An extra callback for the same tick must not issue a second line command.
+    if saved.lastPostUpdateTick == updateResult.tick then return end
+    saved.lastPostUpdateTick = updateResult.tick
+    if saved.disablePending then
+        for line in pairs(saved.lines) do restoreLine(saved, tonumber(line)) end
+        saved.disablePending = false
+        emit(saved, "DISABLED", { active = saved.active })
+    end
+    finishDepartures(saved)
+    if saved.tick % 30 == 1 then watchLines(saved) end
+    applyPending(saved)
     state:set(saved)
 end
 

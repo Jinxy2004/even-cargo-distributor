@@ -1,6 +1,6 @@
 # Cargo Distribution — feasibility probe
 
-Version **0.1.1-prototype** · Mod ID **cargo_distribution_1** · Windows
+Version **0.1.2-prototype** · Mod ID **cargo_distribution_1** · Windows
 
 This development build tests whether Transport Fever 3's native loading targets
 can implement percentages of cargo aboard **on arrival**. Exact native behavior
@@ -33,7 +33,7 @@ Editing this file requires leaving and reloading the save.
 
 The probe logs `[CargoDistribution]` entries to the game's `stdout.txt`. It records
 arrivals, targets, concurrent arrivals, each cargo transfer, departures and restores.
-Arrival callbacks save a pending target; the next script update issues the native
+Arrival callbacks save a pending target; the serial `postUpdate` phase issues the native
 command. If cargo transfers before that update, `TARGET_SKIPPED` records the timing
 failure and suspends the line. The probe never recalculates its quota from the later load.
 The log's `exact=true` is one arrival result, **not** a complete validation of the mod.
@@ -61,14 +61,15 @@ api.cmd.sendCommand(api.cmd.makeScriptingSendEventCmd("cargo_distribution_probe"
 ## Scope and limitations
 
 This build snapshots quantities, rounds half up, translates retained quantities
-to native capacity fractions, and saves diagnostics/state schema 2. Version 0.1.1 fixes
-a crash caused by issuing a line command inside the engine's arrival callback. It never sets
+to native capacity fractions, and saves diagnostics/state schema 2. Version 0.1.2 moves
+commands to the serial postUpdate phase, avoiding both nested arrival transactions
+and callbacks forbidden during parallel update. It never sets
 the native cargo-destruction flags. It cannot yet promise zero pickups, exact
 unloading, or isolation between concurrent arrivals: those are the experiment.
 Passengers aboard cause a probe arrival to be skipped. No passenger features are
 implemented. No executables, base game assets, or modified copies of native GUI
 code are included. Author credit and reuse licensing remain undecided.
 
-After updating from 0.1.0, restart the game and load the ordinary test save made
-before the crash. Do not use the automatically generated `crash_...` save for the
+After updating from 0.1.0 or 0.1.1, restart the game and load the ordinary test save made
+before the failed test. Do not use the automatically generated `crash_...` save for the
 retest. Older saved snapshots are preserved but are never replayed as new arrivals.

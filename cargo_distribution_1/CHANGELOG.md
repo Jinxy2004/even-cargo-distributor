@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.2-prototype
+
+- Register postUpdate and move native commands into that serial phase. Version
+  0.1.1's parallel update callback was rejected, so the unload target never applied.
+- Keep arrival snapshots and restricted updates free of native mutations; reject
+  duplicate postUpdate calls and late targets.
+- Log recoverable command errors and suspend affected rules without repeated error dialogs.
+- Add regression coverage for the callback restriction and the observed 16→8 target.
+- Log alternate-configuration cargo capacities to aid native capacity diagnostics.
+
 ## 0.1.1-prototype
 
 - Fix native `ecs::Engine::BeginModification` assertion on arrival: queue the target

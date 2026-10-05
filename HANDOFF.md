@@ -18,7 +18,7 @@ not substitute capacity-based semantics, cloned lines or executable modification
 
 - Native mod manifest and content index, metadata, stable ID cargo_distribution_1.
 - Pure Lua quota, allowlist, overrides and integrity checks.
-- OnArriveAtStop snapshot; pending retained/capacity target applied from the next update.
+- OnArriveAtStop snapshot; pending retained/capacity target applied in serial postUpdate.
 - Original stop configuration backup and restoration, duplicate-event suppression.
 - Saved state schema 2, quantities keyed by cargo resource names, runtime ID lookup.
   Migration from schema 1 preserves old snapshots without replaying unknown commands.
@@ -34,7 +34,9 @@ concurrency support based on unit tests.
 
 ## Local context and testing status
 
-- Workspace: D:\TSF3Mod; Git initialized on main, no commits or remote yet.
+- Workspace: D:\TSF3Mod. User created Git baseline 5d2d3b3 on main and linked origin
+  https://github.com/Jinxy2004/even-cargo-distributor.git. User authorizes branch/main
+  commits and pushes. Current branch: codex/fix-deferred-command-confirmation.
 - Installed game: D:\Games\Transport Fever 3, build 40408 Windows 64-bit.
 - User-data folder observed in logs: C:\Users\Public\Documents\Steam\RUNE\3493540\local.
 - User created a dedicated test save named ModTestFile. No saves have been modified or copied by us.
@@ -50,20 +52,27 @@ concurrency support based on unit tests.
 - First native load found the mod but reported `function data() not defined`.
   Fixed .script.lua to expose data() and reinstalled. Restart/reload succeeded:
   user reported no error, and the log confirms STARTUP on build 40408.
-  Lua tests now contain 82 passing assertions, including resource entry-point and
+  Lua tests now contain 95 passing assertions, including resource entry-point and
   event-callback mutation regression checks.
 - Git ownership was corrected by preserving the empty sandbox-created repository in
   .git.sandbox-backup (ignored), then initializing a new .git as the user's account.
-  Normal git status works. No remote, commits, or global safe.directory changes.
+  Normal git status works. User subsequently reinitialized/linked Git as described above.
 - The first native arrival crashed in 0.1.0: sendCommand inside OnArriveAtStop caused
   `ecs::Engine::BeginModification` / `!m_betweenChanges`. Actual snapshot: vehicle
   32654, line 79439, stop 2, 10 meat aboard, meat capacity 25, planned quota 5.
   User confirmed the expected source/town A/town B order.
 - Version 0.1.1 (revision 2) fixes scheduling by queueing targets and disable commands
   for update. Pending snapshots survive save/reload; commands are skipped if cargo
-  already changed. Full native behavior requires retesting after reinstall/restart.
+  already changed. Installed 0.1.1 and verified all 12 files match the source.
+  Full native behavior requires retesting after restart.
   See reports/ARRIVAL-CRASH.md for evidence and verification boundaries.
 - Exact installed meat resource name: ::/cargos/meat/meat.cargo.
+- Next native run of 0.1.1 failed with `Callbacks are currently disallowed` in restricted
+  update, so no target was applied: 16 meat arrived and all 16 unloaded instead of 8.
+  Version 0.1.2 registers postUpdate and runs all commands there, following base script
+  patterns. Timing guards and command confirmation remain. Installed 0.1.2 and
+  hash-verified all 12 files. User is retesting from a pre-error save; result pending.
+  See reports/CALLBACK-ERROR.md; do not infer native feasibility from the rejected command.
 
 ## Resume steps
 

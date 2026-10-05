@@ -2,7 +2,7 @@
 -- Existing lines are untouched unless their name exactly matches lineName.
 -- The Cst prefix also exempts the line from Auto Line Namer's automatic renaming.
 return {
-    version = "0.1.1-prototype",
+    version = "0.1.2-prototype",
     lineName = "Cst CD PROBE",
     resetName = "Cst CD RESET",
     maxLogEntries = 800,

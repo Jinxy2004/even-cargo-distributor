@@ -1,19 +1,22 @@
 # GitHub preparation
 
-The workspace is initialized as a Git repository on branch `main`. There is no
-remote and no commit yet. `.gitignore` excludes the local Lua test runtime, generated
+The user initialized and linked this repository to
+https://github.com/Jinxy2004/even-cargo-distributor.git (`origin`), with baseline
+commit `5d2d3b3` on `main`. The user authorized commits and pushes on a feature branch
+or main; the current fix uses `codex/fix-deferred-command-confirmation`.
+`.gitignore` excludes the local Lua test runtime, generated
 ZIPs, saved games, temporary files and the unused sandbox-created Git backup.
 `.gitattributes` defines text line endings.
 
-Before the first public push:
+Before publishing a finished release:
 
 1. Choose creator credit and license. Do not publish the placeholder metadata as final.
 2. Review native-test status and describe this accurately as a prototype while gated.
 3. Review `git status` and the files to include. Source, tools, tests and documentation
    are intended for version control; game installation files and saves are not.
-4. Make the initial commit under your chosen Git identity.
-5. Create or choose your GitHub repository and set its URL as `origin`, then push `main`.
+4. Keep fixes on reviewable branches until their native test results are known.
+5. Commit under the configured Git identity and push to the selected remote branch.
 
-Repository creation and upload have not been performed. The mod.io release and
-GitHub publication are separate actions. The user can choose a private GitHub
-repository while development and native tests continue.
+The mod.io release and GitHub development pushes are separate actions. GitHub pushes
+are authorized; mod.io account submission and public release still require the user's
+explicit request. Code on the fix branch remains an unvalidated prototype.

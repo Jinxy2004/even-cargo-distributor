@@ -7,7 +7,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "cargo_distribution_1"
-VERSION = "0.1.1-prototype"
+VERSION = "0.1.2-prototype"
 
 
 def build():

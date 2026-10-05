@@ -4,7 +4,9 @@
 
 The accepted design is in [HANDOFF.md](HANDOFF.md). The installable source folder is
 `cargo_distribution_1/`; the generated development ZIP is in `dist/`.
-Git is initialized on branch `main`. No remote or commits have been created yet.
+The user initialized Git and linked `origin` to
+https://github.com/Jinxy2004/even-cargo-distributor.git. The command-phase fix is
+being developed on `codex/fix-deferred-command-confirmation`.
 
 Run from this directory:
 
