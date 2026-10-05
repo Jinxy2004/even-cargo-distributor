@@ -23,6 +23,7 @@ commands and saves. Event handlers retain their own updates. Percentages and the
 native capacity conversion are unchanged from 0.1.3. The suite now has 98 assertions,
 including an explicit rejection of state writes from parallel update.
 
-Native 0.1.4 retest is still required to confirm the persisted counts agree with the
-actual transfer sequence. Do not treat the older exact=false conservation warning
-as proof that only one unit moved: the event trace and departure amount show eight.
+Native 0.1.4 retest passed: both towns recorded all eight transfers, with exact=true,
+safe=true and no conservation failures. See [FULL-TRIP.md](FULL-TRIP.md) and its saved
+trace. Do not treat the older exact=false conservation warning as proof that only
+one unit moved: the event trace and departure amount show eight.

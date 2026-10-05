@@ -14,11 +14,11 @@ Current prototype: **0.1.4-prototype**, revision 5, saved schema 2.
 | Game loads corrected script | Passed | User reported clean load; native STARTUP confirms build 40408 |
 | Native arrival handling | Crash found; code repaired | 0.1.0 issued a nested engine command; 0.1.1 defers it to update |
 | Restricted update callback | Fixed in native run | 0.1.2 serial postUpdate command accepted; no callback error |
-| Deferred target runs before transfers | Observed once | 0.1.2 target applied on tick 3849 after arrival 3848 |
-| Single-vehicle 50% partial load | Passed once in native game | 0.1.3: 16 meat arrived, 8 delivered, 8 remained; user confirmed |
-| Persisted transfer counters | Fix awaiting native retest | 0.1.3 lost counters to stale update writes; 0.1.4 makes update read-only |
+| Deferred target runs before transfers | Passed in recorded full trip | 0.1.4: both targets accepted in postUpdate before first transfer |
+| Single-vehicle 50% partial load and full trip | Passed in native game | 0.1.4: 16 meat → 8 → 0; 8 delivered to each town; user confirmed |
+| Persisted transfer counters | Passed in native full trip | Both stops count all 8 unload events; exact=true, safe=true, no failures |
 | Mixed loads unload exactly | Pending | Required gate |
-| No pickup at custom stops | Not run | Required gate |
+| No pickup at custom stops | None observed; dedicated test pending | Full trip had loaded=0; still test with pickup cargo available |
 | Concurrent arrivals use independent targets | Not run | Required gate |
 | Native save/reload and all carrier modes | Not run | Acceptance tests |
 | Native staging validator | Not run | No report exists yet |
@@ -44,7 +44,7 @@ followed by `Expected table at path` messages. The initial source returned a mod
 table; this build requires a `data()` resource entry point for .script.lua. Changed
 the entry point, added assertions for native resource loading, rebuilt and reinstalled.
 After restart/reload, the user reported no error. The log confirms STARTUP and a
-catalog of 36 cargo resources. The user is now running the single-vehicle test.
+catalog of 36 cargo resources. The single-vehicle test subsequently passed (below).
 No unloading result should be inferred from the successful startup.
 
 ## Arrival crash
@@ -55,17 +55,16 @@ The first real arrival captured 10 meat in a 25-capacity configuration, calculat
 from update; it suspends instead if cargo changed before application. See
 [ARRIVAL-CRASH.md](ARRIVAL-CRASH.md) and the retained regression/native logs.
 
-The user should restart with the patched installation and load the ordinary test save
-from before the crash (not the automatically generated crash save). Stop order has
-been confirmed: meat pickup, first town, second town. No route changes are needed.
+The user replayed an ordinary pre-crash test save. Stop order was confirmed:
+meat pickup, first town, second town.
 
 ## Restricted callback error
 
 The next run did not hit the original assertion. Version 0.1.1 instead failed with
 `Callbacks are currently disallowed` during update and delivered all 16 meat at stop 2.
 Version 0.1.2 registers the native serial postUpdate phase for commands and callbacks.
-See [CALLBACK-ERROR.md](CALLBACK-ERROR.md). Uneven delivery remains unresolved in native
-testing until a target is successfully applied and correct quantities are observed.
+See [CALLBACK-ERROR.md](CALLBACK-ERROR.md). Command acceptance alone did not establish
+equal distribution; the capacity correction and later full-trip result did.
 
 ## Compatible-capacity correction
 
@@ -82,3 +81,17 @@ the user confirmed half remained. Eight unload events and the final amount agree
 The saved counter lagged behind the events, which 0.1.4 addresses by eliminating
 parallel state writes. See [STATE-INTERLEAVING.md](STATE-INTERLEAVING.md). The full
 feasibility gate remains pending, particularly concurrent vehicles and mixed goods.
+
+## Confirmed full trip on 0.1.4
+
+The user reported the complete run worked. The native trace confirms 16 meat arrived
+at stop 2, 8 unloaded and 8 remained; at stop 3, those 8 unloaded and 0 remained.
+Both RESULT records have exact=true, safe=true and no failures. Persisted counters
+match all 16 transfer events; no pickups or destruction occurred in this scenario.
+Both original stop configurations were restored. See [FULL-TRIP.md](FULL-TRIP.md)
+and [native-0.1.4-full-trip.log](native-0.1.4-full-trip.log).
+
+Next: overlapping arrivals with different retained/capacity ratios, followed by
+mixed goods/filtering and a dedicated no-pickup scenario. The station's ability to
+unload two vehicles concurrently is not yet known. Work is handing off to a fresh
+session at the user's request; see [HANDOFF.md](../HANDOFF.md).

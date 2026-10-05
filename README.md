@@ -2,6 +2,10 @@
 
 **Current milestone:** feasibility prototype implemented; native gameplay gate pending.
 
+Version 0.1.4 passed the single-vehicle native full trip: 16 meat → 8 → 0, delivering
+8 to each town. Concurrent unloading, mixed goods and the dedicated no-pickup test
+remain unverified. See [reports/FULL-TRIP.md](reports/FULL-TRIP.md).
+
 The accepted design is in [HANDOFF.md](HANDOFF.md). The installable source folder is
 `cargo_distribution_1/`; the generated development ZIP is in `dist/`.
 The user initialized Git and linked `origin` to
