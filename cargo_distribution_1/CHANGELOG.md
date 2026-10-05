@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.4-prototype
+
+- Keep persistent-state writes in serial postUpdate and event handlers. Parallel
+  update no longer overwrites newer transfer counters with an older snapshot.
+- Add an interleaved-event regression and prohibit state writes in the mock's
+  parallel phase. No change to percentage calculations from 0.1.3.
+- Native 0.1.3 test confirmed 16 meat arriving, 8 delivered, 8 retained at town one.
+  Full acceptance remains pending; this is still a feasibility prototype.
+
 ## 0.1.3-prototype
 
 - Correct native target conversion to use all compatible compartment capacity

@@ -68,7 +68,10 @@ local phase="idle"
 local lineName=cfg.lineName
 local state={value={},subscriptions={}}
 function state:get() return core.copy(self.value) end
-function state:set(v) self.value=core.copy(v) end
+function state:set(v)
+    assert(phase~="update", "parallel update must never replace persistent state")
+    self.value=core.copy(v)
+end
 function state:hasEventSubscriptions() return next(self.subscriptions)~=nil end
 function state:subscribeToEvent(name) self.subscriptions[name]=true end
 function ug_require(path) return dofile(source_root.."/"..path:match("([^/]+)$")) end
@@ -288,4 +291,24 @@ update()
 eq(state.value.active["10"].targetStatus,"unconfirmed","command exception is not an accepted target")
 check(state.value.lines["1"].suspended,"command exception suspends rule")
 api.cmd.sendCommand=normalSend
+
+-- Parallel update must not write a stale copy of state over arrival/transfer events.
+-- Simulate an event arriving after the update has read state but before a stale set.
+state.value={};line=core.copy(originals);lineName=cfg.lineName;vehicles[10].stopIndex=1
+cargoCounts[10][1]=16
+update();arrival(10);update()
+local normalGet=state.get
+local interleaved=false
+function state:get()
+    local snapshot=normalGet(self)
+    if phase=="update" and not interleaved then
+        interleaved=true
+        self.value.active["10"].snapshot.meat.unloaded=3
+        cargoCounts[10][1]=13
+    end
+    return snapshot
+end
+update()
+state.get=normalGet
+eq(state.value.active["10"].snapshot.meat.unloaded,3,"parallel update must preserve newer event counters")
 print("CHECKS_PASSED="..count.." (pure Lua and mocked lifecycle only)")

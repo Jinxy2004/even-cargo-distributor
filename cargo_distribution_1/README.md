@@ -1,6 +1,6 @@
 # Cargo Distribution — feasibility probe
 
-Version **0.1.3-prototype** · Mod ID **cargo_distribution_1** · Windows
+Version **0.1.4-prototype** · Mod ID **cargo_distribution_1** · Windows
 
 This development build tests whether Transport Fever 3's native loading targets
 can implement percentages of cargo aboard **on arrival**. Exact native behavior
@@ -73,6 +73,9 @@ code are included. Author credit and reuse licensing remain undecided.
 Native targets use total compatible capacity (`allCaps`), including compartments
 that can switch goods. The player's percentage always applies to arrival cargo:
 16 aboard at 50% means 8 to unload, even if compatible capacity is 225.
+Version 0.1.3 demonstrated that 16→8 split in the native game. Version 0.1.4 also
+prevents the parallel update phase from overwriting transfer counters saved by events.
+The full acceptance matrix, including concurrent vehicles, is still outstanding.
 
 After updating, restart the game and load the ordinary test save made
 before the failed test. Do not use the automatically generated `crash_...` save for the

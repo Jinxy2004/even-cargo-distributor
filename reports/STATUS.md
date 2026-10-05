@@ -1,21 +1,23 @@
 # Feasibility and release status
 
 Updated: 2026-10-05 America/New_York. Inspected game: **40408 Windows 64-bit**.
-Current prototype: **0.1.3-prototype**, revision 4, saved schema 2.
+Current prototype: **0.1.4-prototype**, revision 5, saved schema 2.
 
 | Check | Status | Evidence / boundary |
 |---|---|---|
-| Lua source compiles | Passed | Lua 5.4 through Lupa 2.6; 97 assertions in two test cases |
+| Lua source compiles | Passed | Lua 5.4 through Lupa 2.6; 98 assertions in two test cases |
 | Quotas, allowlists, per-cargo overrides | Passed in unit tests | Actual core.lua |
 | Snapshots, duplicate arrivals, concurrent bookkeeping, restore | Passed in mock | Actual probe.script.lua; native unloading is not simulated |
 | Deterministic ZIP and member hash checks | Passed | dist/package-report.json |
-| Mod installed in local user-data folder | Completed | 0.1.3 installed; all 12 source files hash-match; no saves modified |
+| Mod installed in local user-data folder | Completed | 0.1.4 installed; all 12 source files hash-match; no saves modified |
 | Game discovers mod | Passed | Native log found the new game script |
 | Game loads corrected script | Passed | User reported clean load; native STARTUP confirms build 40408 |
 | Native arrival handling | Crash found; code repaired | 0.1.0 issued a nested engine command; 0.1.1 defers it to update |
 | Restricted update callback | Fixed in native run | 0.1.2 serial postUpdate command accepted; no callback error |
 | Deferred target runs before transfers | Observed once | 0.1.2 target applied on tick 3849 after arrival 3848 |
-| Partial and mixed loads unload exactly | Failing in prior builds | 0.1.2 retained all 16 due to capacity conversion; 0.1.3 retest pending |
+| Single-vehicle 50% partial load | Passed once in native game | 0.1.3: 16 meat arrived, 8 delivered, 8 remained; user confirmed |
+| Persisted transfer counters | Fix awaiting native retest | 0.1.3 lost counters to stale update writes; 0.1.4 makes update read-only |
+| Mixed loads unload exactly | Pending | Required gate |
 | No pickup at custom stops | Not run | Required gate |
 | Concurrent arrivals use independent targets | Not run | Required gate |
 | Native save/reload and all carrier modes | Not run | Acceptance tests |
@@ -72,3 +74,11 @@ unloaded all at the second, matching the user's report. Its native fraction used
 configured capacity 25 instead of compatible capacity 225. Version 0.1.3 corrects
 the denominator; see [CAPACITY-CONVERSION.md](CAPACITY-CONVERSION.md). Do not count
 the earlier command's acceptance as a pass for equal distribution.
+
+## First confirmed partial delivery
+
+Version 0.1.3 delivered eight units and retained eight from a sixteen-unit arrival;
+the user confirmed half remained. Eight unload events and the final amount agree.
+The saved counter lagged behind the events, which 0.1.4 addresses by eliminating
+parallel state writes. See [STATE-INTERLEAVING.md](STATE-INTERLEAVING.md). The full
+feasibility gate remains pending, particularly concurrent vehicles and mixed goods.

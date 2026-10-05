@@ -52,7 +52,7 @@ concurrency support based on unit tests.
 - First native load found the mod but reported `function data() not defined`.
   Fixed .script.lua to expose data() and reinstalled. Restart/reload succeeded:
   user reported no error, and the log confirms STARTUP on build 40408.
-  Lua tests now contain 97 passing assertions, including resource entry-point and
+  Lua tests now contain 98 passing assertions, including resource entry-point and
   event-callback mutation regression checks.
 - Git ownership was corrected by preserving the empty sandbox-created repository in
   .git.sandbox-backup (ignored), then initializing a new .git as the user's account.
@@ -81,6 +81,12 @@ concurrency support based on unit tests.
   native result pending. See reports/CAPACITY-CONVERSION.md.
 - Commit ea04854 with the command-phase fix was pushed to the fix branch. The capacity
   correction is a follow-up on that same branch.
+- Capacity fix pushed as df68e49. Native 0.1.3 confirmed 16→8 at town one: eight
+  unload events, eight aboard on departure; user answered "Half remains".
+  Saved diagnostic counter showed only one event, revealing stale parallel-state writes.
+  Version 0.1.4 moves persistent writes entirely to postUpdate/event handlers; 98
+  assertions pass, including the reproduced interleaving. Installed 0.1.4 and verified
+  all 12 source files match. Native retest and the full feasibility gate remain pending.
 
 ## Resume steps
 

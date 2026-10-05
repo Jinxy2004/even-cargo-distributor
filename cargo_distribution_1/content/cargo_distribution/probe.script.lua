@@ -322,17 +322,10 @@ function M.update(_, state, dt)
         state:subscribeToEvent("OnCargoUnloaded")
         state:subscribeToEvent("CargoDistributionControl")
     end
-    local saved = core.migrate(state:get())
-    if saved.version ~= config.version then
-        saved.started = true
-        saved.version = config.version
-        emit(saved, "STARTUP", { version = config.version, build = getBuildVersion(), catalog = catalog() })
-    end
-    if dt > 0 then
-        saved.tick = saved.tick + 1
-    end
-    state:set(saved)
-    return { tick = saved.tick, advance = dt > 0 }
+    -- Parallel update can read an older snapshot than an intervening cargo event.
+    -- Never set script state here: doing so overwrites the event's newer counters.
+    local saved = state:get() or {}
+    return { tick = (saved.tick or 0) + 1, advance = dt > 0 }
 end
 
 function M.postUpdate(_, state, dt, updateResult)
@@ -342,6 +335,12 @@ function M.postUpdate(_, state, dt, updateResult)
     -- An extra callback for the same tick must not issue a second line command.
     if saved.lastPostUpdateTick == updateResult.tick then return end
     saved.lastPostUpdateTick = updateResult.tick
+    saved.tick = updateResult.tick
+    if saved.version ~= config.version then
+        saved.started = true
+        saved.version = config.version
+        emit(saved, "STARTUP", { version = config.version, build = getBuildVersion(), catalog = catalog() })
+    end
     if saved.disablePending then
         for line in pairs(saved.lines) do restoreLine(saved, tonumber(line)) end
         saved.disablePending = false

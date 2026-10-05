@@ -1,5 +1,5 @@
 test_all_lua_compiles (__main__.LuaTests.test_all_lua_compiles) ... ok
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
 [CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
 [CargoDistribution] {data={allCapacities={grain=50,meat=100},cargo={grain={arrival=0,capacity=50,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=60,capacity=100,destroyed=0,loaded=0,percentage=50,quota=30,retained=30,target=0.3,unloaded=0}},configuredCapacities={grain=50,meat=100},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=1}
 [CargoDistribution] {data={stop=2,vehicle=10},kind=DUPLICATE_OR_OVERLAPPING_ARRIVAL,tick=1}
@@ -92,21 +92,21 @@ test_all_lua_compiles (__main__.LuaTests.test_all_lua_compiles) ... ok
 [CargoDistribution] {data={line=1,stop=2},kind=RESTORED,tick=6}
 [CargoDistribution] {data={allCapacities={grain=50,meat=100},cargo={grain={arrival=0,capacity=50,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=30,capacity=100,destroyed=0,loaded=0,percentage=50,quota=15,retained=15,target=0.15,unloaded=0}},configuredCapacities={grain=50,meat=100},line=1,loadState=Arrived,overlap=false,sequence=3,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=6}
 [CargoDistribution] {data={line=1,reason=line_renamed,sequence=3,stop=2,vehicle=10},kind=TARGET_SKIPPED,tick=7}
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
 [CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
 [CargoDistribution] {data={allCapacities={grain=50,meat=100},cargo={grain={arrival=0,capacity=50,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=30,capacity=100,destroyed=0,loaded=0,percentage=50,quota=15,retained=15,target=0.15,unloaded=0}},configuredCapacities={grain=50,meat=100},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=1}
 [CargoDistribution] {data={line=1,reason=route_changed,sequence=1,stop=2,vehicle=10},kind=TARGET_SKIPPED,tick=2}
 [CargoDistribution] {data={active={10={departureMarker=1,line=1,overlap=false,sequence=1,snapshot={grain={arrival=0,capacity=50,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=30,capacity=100,destroyed=0,loaded=0,percentage=50,quota=15,retained=15,target=0.15,unloaded=0}},stop=1,targetError=route_changed,targetStatus=skipped,tick=1,unknownTransfers=0}}},kind=DISABLE_QUEUED,tick=31}
 [CargoDistribution] {data={active={10={departureMarker=1,line=1,overlap=false,sequence=1,snapshot={grain={arrival=0,capacity=50,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=30,capacity=100,destroyed=0,loaded=0,percentage=50,quota=15,retained=15,target=0.15,unloaded=0}},stop=1,targetError=route_changed,targetStatus=skipped,tick=1,unknownTransfers=0}}},kind=DISABLED,tick=32}
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
 [CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
 [CargoDistribution] {data={vehicle=10},kind=SKIPPED_PASSENGERS,tick=1}
 [CargoDistribution] {data={allCapacities={grain=50,meat=100},cargo={grain={arrival=0,capacity=50,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=30,capacity=100,destroyed=0,loaded=0,percentage=50,quota=15,retained=15,target=0.15,unloaded=0}},configuredCapacities={grain=50,meat=100},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=1}
 [CargoDistribution] {data={applied=true,applyTick=2,arrivalTick=1,commandPhase=postUpdate,line=1,sequence=1,stop=2,target={destroyForConfigChange=false,destroyForRefresh=false,forceUnload=false,load={1=true,2=true,3=false},maxLoad={1=1,2=0.15,3=0.0}},vehicle=10},kind=TARGET_WRITTEN,tick=2}
 [CargoDistribution] {data={sequence=1,vehicle=10},kind=ABORTED_VEHICLE_REMOVED,tick=3}
 [CargoDistribution] {data={line=1,stop=2},kind=RESTORED,tick=3}
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
 [CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
 [CargoDistribution] {data={allCapacities={grain=50,meat=100},cargo={grain={arrival=0,capacity=50,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=60,capacity=100,destroyed=0,loaded=0,percentage=50,quota=30,retained=30,target=0.3,unloaded=0}},configuredCapacities={grain=50,meat=100},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,targetStatus=pending,vehicle=11},kind=ARRIVAL,tick=1}
 [CargoDistribution] {data={allCapacities={grain=225,meat=225},cargo={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=10,capacity=225,destroyed=0,loaded=0,percentage=50,quota=5,retained=5,target=0.022222222222222,unloaded=0}},configuredCapacities={grain=175,meat=25},line=1,loadState=Arrived,overlap=true,sequence=2,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=1}
@@ -115,42 +115,60 @@ test_all_lua_compiles (__main__.LuaTests.test_all_lua_compiles) ... ok
 [CargoDistribution] {data={active={10={appliedTick=2,departureMarker=0,line=1,overlap=true,sequence=2,snapshot={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=10,capacity=225,destroyed=0,loaded=0,percentage=50,quota=5,retained=5,target=0.022222222222222,unloaded=0}},stop=1,targetStatus=applied,tick=1,unknownTransfers=0},11={appliedTick=2,departureMarker=1,line=1,overlap=true,sequence=1,snapshot={grain={arrival=0,capacity=50,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=60,capacity=100,destroyed=0,loaded=0,percentage=50,quota=30,retained=30,target=0.3,unloaded=0}},stop=1,targetStatus=applied,tick=1,unknownTransfers=0}}},kind=DISABLE_QUEUED,tick=2}
 [CargoDistribution] {data={line=1,stop=2},kind=RESTORED,tick=3}
 [CargoDistribution] {data={active={10={appliedTick=2,departureMarker=0,line=1,overlap=true,sequence=2,snapshot={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=10,capacity=225,destroyed=0,loaded=0,percentage=50,quota=5,retained=5,target=0.022222222222222,unloaded=0}},stop=1,targetStatus=applied,tick=1,unknownTransfers=0},11={appliedTick=2,departureMarker=1,line=1,overlap=true,sequence=1,snapshot={grain={arrival=0,capacity=50,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=60,capacity=100,destroyed=0,loaded=0,percentage=50,quota=30,retained=30,target=0.3,unloaded=0}},stop=1,targetStatus=applied,tick=1,unknownTransfers=0}}},kind=DISABLED,tick=3}
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
 [CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
 [CargoDistribution] {data={allCapacities={grain=225,meat=225},cargo={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=10,capacity=225,destroyed=0,loaded=0,percentage=50,quota=5,retained=5,target=0.022222222222222,unloaded=0}},configuredCapacities={grain=175,meat=25},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=1}
 [CargoDistribution] {data={cargo=meat,destination={1={1=9,2=0},2=false},event=OnCargoUnloaded,item=1001,sequence=1,vehicle=10},kind=TRANSFER,tick=1}
 [CargoDistribution] {data={line=1,reason=cargo_transferred_before_target,sequence=1,stop=2,vehicle=10},kind=TARGET_SKIPPED,tick=2}
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
 [CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
 [CargoDistribution] {data={allCapacities={grain=225,meat=225},cargo={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=9,capacity=225,destroyed=0,loaded=0,percentage=50,quota=5,retained=4,target=0.017777777777778,unloaded=0}},configuredCapacities={grain=175,meat=25},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=1}
 [CargoDistribution] {data={active={10={departureMarker=0,line=1,overlap=false,sequence=1,snapshot={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=9,capacity=225,destroyed=0,loaded=0,percentage=50,quota=5,retained=4,target=0.017777777777778,unloaded=0}},stop=1,targetStatus=pending,tick=1,unknownTransfers=0}}},kind=DISABLE_QUEUED,tick=1}
 [CargoDistribution] {data={active={10={departureMarker=0,line=1,overlap=false,sequence=1,snapshot={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=9,capacity=225,destroyed=0,loaded=0,percentage=50,quota=5,retained=4,target=0.017777777777778,unloaded=0}},stop=1,targetStatus=pending,tick=1,unknownTransfers=0}}},kind=DISABLED,tick=2}
 [CargoDistribution] {data={line=1,reason=disabled_or_suspended,sequence=1,stop=2,vehicle=10},kind=TARGET_SKIPPED,tick=2}
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
 [CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
 [CargoDistribution] {data={allCapacities={grain=225,meat=225},cargo={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=9,capacity=225,destroyed=0,loaded=0,percentage=50,quota=5,retained=4,target=0.017777777777778,unloaded=0}},configuredCapacities={grain=175,meat=25},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=1}
 [CargoDistribution] {data={line=1,reason=cargo_transferred_before_target,sequence=1,stop=2,vehicle=10},kind=TARGET_SKIPPED,tick=2}
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
 [CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
 [CargoDistribution] {data={allCapacities={grain=225,meat=225},cargo={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=8,capacity=225,destroyed=0,loaded=0,percentage=50,quota=4,retained=4,target=0.017777777777778,unloaded=0}},configuredCapacities={grain=175,meat=25},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=1}
 [CargoDistribution] {data={arrivalTick=1,cargo={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=8,capacity=225,destroyed=0,loaded=0,percentage=50,quota=4,retained=4,target=0.017777777777778,unloaded=0}},departure={grain=0,meat=8},line=1,overlap=false,result={exact=false,failures={1=target_not_applied:pending},safe=true},sequence=1,stop=2,targetStatus=pending,vehicle=10},kind=RESULT,tick=2}
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
 [CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
 [CargoDistribution] {data={allCapacities={grain=225,meat=225},cargo={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=16,capacity=225,destroyed=0,loaded=0,percentage=50,quota=8,retained=8,target=0.035555555555556,unloaded=0}},configuredCapacities={grain=175,meat=25},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=1}
 [CargoDistribution] {data={applied=true,applyTick=2,arrivalTick=1,commandPhase=postUpdate,line=1,sequence=1,stop=2,target={destroyForConfigChange=false,destroyForRefresh=false,forceUnload=false,load={1=true,2=true,3=false},maxLoad={1=1,2=0.035555555555556,3=0.0}},vehicle=10},kind=TARGET_WRITTEN,tick=2}
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
 [CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
 [CargoDistribution] {data={allCapacities={grain=225,meat=225},cargo={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=16,capacity=225,destroyed=0,loaded=0,percentage=50,quota=8,retained=8,target=0.035555555555556,unloaded=0}},configuredCapacities={grain=175,meat=25},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=1}
-[CargoDistribution] {data={line=1,reason=[string "<python>"]:289: simulated command failure,stop=2},kind=COMMAND_ERROR,tick=2}
+[CargoDistribution] {data={line=1,reason=[string "<python>"]:286: simulated command failure,stop=2},kind=COMMAND_ERROR,tick=2}
 [CargoDistribution] {data={applied=false,applyTick=2,arrivalTick=1,commandPhase=postUpdate,line=1,sequence=1,stop=2,target={destroyForConfigChange=false,destroyForRefresh=false,forceUnload=false,load={1=true,2=true,3=false},maxLoad={1=1,2=0.035555555555556,3=0.0}},vehicle=10},kind=TARGET_WRITTEN,tick=2}
-[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.4-prototype},kind=STARTUP,tick=1}
+[CargoDistribution] {data={build=FAKE ENGINE - not a native result,catalog={1=meat,2=grain},version=0.1.3-prototype},kind=STARTUP,tick=0}
 [CargoDistribution] {data={line=1,name=Cst CD PROBE,rules={2={filter=automatic,overrides={},percentage=50},3={filter=automatic,overrides={},percentage=100}}},kind=ARMED,tick=1}
 [CargoDistribution] {data={allCapacities={grain=225,meat=225},cargo={grain={arrival=0,capacity=225,destroyed=0,loaded=0,percentage=50,quota=0,retained=0,target=0.0,unloaded=0},meat={arrival=16,capacity=225,destroyed=0,loaded=0,percentage=50,quota=8,retained=8,target=0.035555555555556,unloaded=0}},configuredCapacities={grain=175,meat=25},line=1,loadState=Arrived,overlap=false,sequence=1,stop=2,targetStatus=pending,vehicle=10},kind=ARRIVAL,tick=1}
 [CargoDistribution] {data={applied=true,applyTick=2,arrivalTick=1,commandPhase=postUpdate,line=1,sequence=1,stop=2,target={destroyForConfigChange=false,destroyForRefresh=false,forceUnload=false,load={1=true,2=true,3=false},maxLoad={1=1,2=0.035555555555556,3=0.0}},vehicle=10},kind=TARGET_WRITTEN,tick=2}
-CHECKS_PASSED=98 (pure Lua and mocked lifecycle only)
-test_core_and_lifecycle (__main__.LuaTests.test_core_and_lifecycle) ... ok
+test_core_and_lifecycle (__main__.LuaTests.test_core_and_lifecycle) ... ERROR
+
+======================================================================
+ERROR: test_core_and_lifecycle (__main__.LuaTests.test_core_and_lifecycle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\TSF3Mod\tools\test.py", line 15, in test_core_and_lifecycle
+    lua.execute((ROOT / "tests/probe_test.lua").read_text(encoding="utf-8"))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "lupa/lua54.pyx", line 441, in lupa.lua54.LuaRuntime.execute
+  File "lupa/lua54.pyx", line 1872, in lupa.lua54.run_lua
+  File "lupa/lua54.pyx", line 1886, in lupa.lua54.call_lua
+  File "lupa/lua54.pyx", line 1913, in lupa.lua54.execute_lua_call
+  File "lupa/lua54.pyx", line 1794, in lupa.lua54.raise_lua_error
+lupa.lua54.LuaError: [string "<python>"]:4: parallel update must preserve newer event counters: 0 ~= 3
+stack traceback:
+	[string "<python>"]:310: in main chunk
+	[string "<python>"]:8: in local 'eq'
+	[string "<python>"]:4: in upvalue 'check'
+	[C]: in function 'assert'
 
 ----------------------------------------------------------------------
-Ran 2 tests in 0.051s
+Ran 2 tests in 0.067s
 
-OK
+FAILED (errors=1)
