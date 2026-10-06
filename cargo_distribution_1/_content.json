@@ -1,9 +1,12 @@
 {
   "archives": null,
   "files": [
+    "cargo_distribution/cargo_distribution.gs.lua",
     "cargo_distribution/config.lua",
     "cargo_distribution/core.lua",
-    "cargo_distribution/probe.gs.lua",
-    "cargo_distribution/probe.script.lua"
+    "cargo_distribution/runtime.script.lua",
+    "cargo_distribution/unload_gui.css.lua",
+    "cargo_distribution/unload_gui.res.lua",
+    "cargo_distribution/unload_gui.script.lua"
   ]
 }

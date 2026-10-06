@@ -12,7 +12,12 @@ class LuaTests(unittest.TestCase):
     def test_core_and_lifecycle(self):
         lua = LuaRuntime(unpack_returned_tuples=True)
         lua.globals().source_root = (ROOT / "cargo_distribution_1/content/cargo_distribution").as_posix()
-        lua.execute((ROOT / "tests/probe_test.lua").read_text(encoding="utf-8"))
+        lua.execute((ROOT / "tests/runtime_test.lua").read_text(encoding="utf-8"))
+
+    def test_gui_smoke(self):
+        lua = LuaRuntime(unpack_returned_tuples=True)
+        lua.globals().source_root = (ROOT / "cargo_distribution_1/content/cargo_distribution").as_posix()
+        lua.execute((ROOT / "tests/gui_smoke_test.lua").read_text(encoding="utf-8"))
 
     def test_all_lua_compiles(self):
         lua = LuaRuntime(unpack_returned_tuples=True)

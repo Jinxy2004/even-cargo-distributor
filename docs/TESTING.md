@@ -1,3 +1,32 @@
+# In-game testing
+
+Set `verbose = true` in `config.lua` first so stdout.txt carries the full trace
+(arrivals, targets, every transfer, results). Set it back to false before releasing.
+
+## Interface checks (added in 0.2.0, passed by the user in game)
+
+0.1.4 passed the native gate with config-file rules (see test-reports/: FULL-TRIP, MIXED,
+SAVE-RELOAD, OVERRIDE, BOUNDARY; CONCURRENT is the accepted limitation). 0.2.0 replaces
+the line-name/config opt-in with the stop-window Unload card. Re-verify:
+
+1. **Card appears:** line manager -> stop window shows Unload at the bottom; other
+   popovers are unchanged; no errors in stdout.txt.
+2. **Set a rule:** tick custom unloading at town one, 50%. stdout shows RULE_SET with
+   the station key. Run a train: exact result as in FULL-TRIP.
+3. **Selected cargo + Own %:** repeat MIXED and OVERRIDE through the card.
+4. **Untick:** RULE_CLEARED; next arrival unloads normally.
+5. **Route edit:** add a stop elsewhere on the line; the rule stays on the same
+   station. Remove the station; RULE_DROPPED_STATION_REMOVED.
+6. **Player edit during unload:** change the stop's Load card while a train is
+   unloading; RESTORE_SKIPPED_PLAYER_EDIT and the change is kept.
+7. **Save/reload** with a rule set: the card still shows it.
+
+Collect logs before restarting the game: `python tools/collect_log.py <stdout.txt> --output docs/test-reports/logs/<name>.log`.
+
+---
+
+Earlier 0.1.x protocol (kept for reference):
+
 # Native feasibility test protocol
 
 Record build, mod version, vehicle ID/mode, capacity, arrival quantity, warehouse
@@ -10,8 +39,8 @@ Do not edit native Load settings during a probe run.
 
 1. **Load smoke test:** enable this mod and load the test save. Let it run briefly.
    The log must contain STARTUP with build and cargo catalog and no script errors.
-   For version 0.1.1, verify ARRIVAL is followed by TARGET_WRITTEN on the next update
-   with `applied=true`. A TARGET_SKIPPED timing failure requires investigation; do
+   For version 0.1.4, verify ARRIVAL is followed by TARGET_WRITTEN with
+   `commandPhase=postUpdate` and `applied=true`. A TARGET_SKIPPED timing failure requires investigation; do
    not count that run as proof of working percentage unloading.
 2. **Single vehicle:** source → accepting warehouse A → accepting warehouse B.
    Ensure enough free warehouse capacity. Record the vehicle amount immediately

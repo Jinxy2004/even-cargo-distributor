@@ -1,29 +1,39 @@
-# Cargo Distribution development workspace
+# Cargo Distribution — Transport Fever 3 mod
 
-**Current milestone:** feasibility prototype implemented; native gameplay gate pending.
+Unload a set percentage of the cargo each vehicle carries at chosen line stops, so a
+delivery can be split between towns (e.g. 50% at the first, the rest at the second).
+Configured from a new **Unload** card in the game's stop window. Player documentation:
+[cargo_distribution_1/README.md](cargo_distribution_1/README.md).
 
-The accepted design is in [HANDOFF.md](HANDOFF.md). The installable source folder is
-`cargo_distribution_1/`; the generated development ZIP is in `dist/`.
-Git is initialized on branch `main`. No remote or commits have been created yet.
+- Mod ID: `cargo_distribution_1` · Version: 1.0.0 · Author: bobbyhill1239 · License: [MIT](LICENSE)
+- Tested on Transport Fever 3 build 40408, Windows.
 
-Run from this directory:
+## Repository layout
+
+| Path | What it is |
+|---|---|
+| `cargo_distribution_1/` | The mod itself — exactly what gets installed and published |
+| `cargo_distribution_1/content/cargo_distribution/` | Lua: `core.lua` (pure maths/rules), `runtime.script.lua` (game script), `unload_gui.*` (stop-window card) |
+| `tests/` | Lua tests run against mocked engine/GUI APIs |
+| `tools/` | Test runner, release build, local/staging install, log collector |
+| `media/` | mod.io logo (original artwork) |
+| `docs/MODIO.md` | Publishing steps and listing text |
+| `docs/TESTING.md`, `docs/test-reports/` | In-game test protocol and the recorded results |
+| `docs/HANDOFF.md` | Design notes and engine findings for future development |
+
+## Development
 
 ```powershell
-python -m pip install --target .tools/python lupa==2.6
-python tools/test.py
-python tools/build.py
+python -m pip install --target .tools/python lupa==2.6   # once; dev-only, never packaged
+python tools/test.py                                      # runtime + GUI tests (Lua 5.4)
+python tools/build.py                                     # checks metadata, builds dist/cargo_distribution-<version>.zip
+.\tools\install-local.ps1 -UserData 'C:\Users\Public\Documents\Steam\RUNE\3493540\local'            # play/test
+.\tools\install-local.ps1 -UserData 'C:\Users\Public\Documents\Steam\RUNE\3493540\local' -Staging   # for publishing
 ```
 
-The Python bridge runs the actual Lua source using Lua 5.4. It is a development-only
-dependency and never enters the mod package. A mocked game checks lifecycle behavior;
-it cannot prove the proprietary engine's cargo-transfer behavior.
+The tests run the real Lua source against mocks. They cannot prove the engine's cargo
+transfer behaviour; that was verified in game (see `docs/test-reports/`).
 
-`tools/install-local.ps1 -UserData 'YOUR GAME USER-DATA FOLDER'` copies only this mod.
-An optional `-SaveName 'YOUR SAVE.sav'` also creates a separate disposable copy if absent.
-It never overwrites the original save or an existing test copy. The prototype has
-been installed into the local user-data mods folder with approval. The user created
-the dedicated save **ModTestFile**; no saves were created or changed by this workspace.
-
-`python tools/build.py --release` intentionally fails while the native gate is
-pending. Prototype packaging uses only mod-owned files and verifies archive hashes.
-See [reports/STATUS.md](reports/STATUS.md) and [docs/MODIO.md](docs/MODIO.md).
+For native traces, set `verbose = true` in `config.lua`, then collect the log before
+restarting the game: `python tools/collect_log.py <user-data>\crash_dump\stdout.txt --output docs/test-reports/logs/<name>.log`.
+Set it back to `false` before a release (the build refuses otherwise).

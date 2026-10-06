@@ -1,8 +1,15 @@
 {
-  "name": "Cargo Distribution — Feasibility Probe",
-  "summary": "Development probe for arrival-based cargo unloading. Test saves only.",
-  "description": "Version 0.1.1-prototype. Opt in by naming one test line Cst CD PROBE. Stop 2 attempts to unload 50% of arrival cargo; stop 3 attempts to unload 100%. This is an instrumented experiment, not a validated gameplay release. Rename the line Cst CD RESET and let the simulation run before removing. Read README.md and TESTING.md. Author credit and licensing must be selected before publication.",
-  "authors": [{"name": "AUTHOR TO BE SELECTED BEFORE PUBLICATION", "role": "CREATOR"}],
-  "tags": ["Script Mod"],
-  "url": ""
+  "name": "Cargo Distribution",
+  "summary": "Split deliveries between stops: unload a set percentage of each vehicle's cargo at chosen stops, with per-cargo levels.",
+  "description": "Split each delivery between the stops on a line instead of dropping everything at the first one.\n\nWHAT IT DOES\n• Adds an Unload card to the stop window (line manager → click a stop), below Load and Departure Configuration.\n• Unload a set percentage of the cargo each vehicle carries when it arrives, e.g. 50% at the first town and the rest at the second.\n• One level for all cargo, plus optional per-cargo levels: click + and pick a cargo, just like the Load card.\n• 0% keeps a cargo aboard, so you can unload only meat and carry the wool on.\n• Amounts round to the nearest whole unit (25 at 50% unloads 13).\n• Works with mixed cargo in the same wagons.\n\nHOW TO USE\n1. Open the line manager, select a line and click a stop.\n2. Tick \"Custom unloading at this stop\".\n3. Set the All cargo level.\n4. Optional: click + to give a cargo its own level. Click its icon later to change or remove it.\n\nGOOD TO KNOW\n• Vehicles don't pick up cargo at a stop with custom unloading.\n• Cargo the station can't accept stays aboard. Cargo is never destroyed.\n• Rules are saved with your game and stay with their station when you add, remove or reorder other stops.\n• Stops without custom unloading behave exactly as normal.\n• Passenger vehicles are not affected.\n• Safe to add to existing saves.\n\nCAVEATS\n• Removing the mod from a save game can cause unwanted behavior.\n\nBUG REPORTS\n• If you find a bug, please post a comment about it and I'll attempt to resolve it as quickly as possible.",
+  "authors": [
+    {
+      "name": "bobbyhill1239",
+      "role": "CREATOR"
+    }
+  ],
+  "tags": [
+    "Script Mod"
+  ],
+  "url": "https://github.com/Jinxy2004/even-cargo-distributor"
 }

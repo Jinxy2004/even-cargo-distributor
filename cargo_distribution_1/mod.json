@@ -1,13 +1,19 @@
 {
   "modId": "cargo_distribution_1",
-  "revision": 2,
+  "revision": 7,
   "dependencies": null,
   "incompatibilities": null,
   "options": null,
   "params": null,
-  "preRunScript": {"fileName": ""},
-  "runScript": {"fileName": ""},
-  "postRunScript": {"fileName": ""},
+  "preRunScript": {
+    "fileName": ""
+  },
+  "runScript": {
+    "fileName": ""
+  },
+  "postRunScript": {
+    "fileName": ""
+  },
   "severityAdd": "Warning",
   "severityRemove": "Warning"
 }
